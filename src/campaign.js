@@ -3,42 +3,46 @@
 const CAMP = (() => {
   const KEY = 'block-lords.campaign.v1';
   const RACES = {
-    rat: { name: 'Щуролюд', icon: '🐀', color: '#AB88CB', trait: 'Невисокі HP та сила. Добрий початок пригоди.' },
-    human: { name: 'Бандит', icon: '🗡', color: '#74A4D7', trait: 'Броня поглинає частину кожного удару.' },
-    orc: { name: 'Орк', icon: '🪓', color: '#82BE65', trait: 'Більше здоров’я та сильніші удари.' },
-    demon: { name: 'Демон', icon: '🔥', color: '#D582A5', trait: 'Висока сила, броня та досвідчений AI.' },
+    rat: { name: 'Ratfolk', icon: '🐀', color: '#AB88CB', trait: 'Low health and attack. A good place to start your adventure.' },
+    human: { name: 'Bandit', icon: '🗡', color: '#74A4D7', trait: 'Armor absorbs part of every hit.' },
+    orc: { name: 'Orc', icon: '🪓', color: '#82BE65', trait: 'More health and stronger attacks.' },
+    demon: { name: 'Demon', icon: '🔥', color: '#D582A5', trait: 'Strong attacks, armor, and a skilled opponent.' },
   };
   const ENEMIES = [
-    ['rat', 'Щур-розвідник', 60, .6, 0, 'easy', 45],
-    ['rat', 'Печерний злодій', 75, .7, 0, 'easy', 55],
-    ['rat', 'Король нори', 90, .8, .05, 'easy', 70],
-    ['human', 'Дорожній бандит', 100, .85, .1, 'easy', 80],
-    ['human', 'Вартовий руїн', 115, .9, .15, 'medium', 95],
-    ['human', 'Капітан розбійників', 130, 1, .2, 'medium', 115],
-    ['orc', 'Орк-рубака', 145, 1.2, 0, 'medium', 125],
-    ['orc', 'Кам’яний громила', 165, 1.35, .05, 'medium', 140],
-    ['orc', 'Вождь клану', 190, 1.5, .1, 'medium', 165],
-    ['demon', 'Вогняний страж', 190, 1.45, .15, 'medium', 175],
-    ['demon', 'Тінь вежі', 210, 1.3, .15, 'medium', 200],
-    ['demon', 'Володар вежі', 225, 1.4, .2, 'medium', 250],
+    ['rat', 'Rat Scout', 60, .6, 0, 'easy', 45],
+    ['rat', 'Cave Thief', 75, .7, 0, 'easy', 55],
+    ['rat', 'Burrow King', 90, .8, .05, 'easy', 70],
+    ['human', 'Road Bandit', 100, .85, .1, 'easy', 80],
+    ['human', 'Ruins Guard', 115, .9, .15, 'medium', 95],
+    ['human', 'Bandit Captain', 130, 1, .2, 'medium', 115],
+    ['orc', 'Orc Raider', 145, 1.2, 0, 'medium', 125],
+    ['orc', 'Stone Brute', 165, 1.35, .05, 'medium', 140],
+    ['orc', 'Clan Chief', 190, 1.5, .1, 'medium', 165],
+    ['demon', 'Flame Warden', 190, 1.45, .15, 'medium', 175],
+    ['demon', 'Tower Shadow', 210, 1.3, .15, 'medium', 200],
+    ['demon', 'Tower Lord', 225, 1.4, .2, 'medium', 250],
   ].map(([race, name, hp, attack, armor, ai, reward], id) => ({ id, race, name, hp, attack, armor, ai, reward, boss: id % 3 === 2 }));
+  // Two routes from the first victory: the woodland road or a harder orc shortcut.
+  // Each listed parent is an alternative prerequisite (OR), not a required checklist.
+  const PARENTS = [[], [0], [1], [2], [3], [4], [0], [6,3], [7], [5,8,4], [9], [10]];
+  const ROUTES = PARENTS.flatMap((parents,to) => parents.map(from => ({from,to,shortcut: to-from > 1})));
   const UPGRADES = {
-    attack: { name: 'Сила', icon: '⚔', base: 50, growth: 1.32, cap: 20, detail: '+10% до шкоди за рівень' },
-    hp: { name: 'Витривалість', icon: '♥', base: 45, growth: 1.3, cap: 20, detail: '+15 максимальних HP за рівень' },
-    loot: { name: 'Здобич', icon: '✦', base: 75, growth: 1.4, cap: 10, detail: '+10% золота з боїв за рівень' },
+    attack: { name: 'Attack', icon: '⚔', base: 50, growth: 1.32, cap: 20, detail: '+10% damage per level' },
+    hp: { name: 'Vitality', icon: '♥', base: 45, growth: 1.3, cap: 20, detail: '+15 maximum HP per level' },
+    loot: { name: 'Fortune', icon: '✦', base: 75, growth: 1.4, cap: 10, detail: '+10% battle gold per level' },
   };
   const QUESTS = [
-    { id: 'play', name: 'Перша пригода', detail: 'Заверши один бій', stat: 'games', target: 1, reward: 25 },
-    { id: 'blocks', name: 'Рунний майстер', detail: 'Постав 10 фігур', stat: 'actions', target: 10, reward: 30 },
-    { id: 'lines', name: 'Перші закляття', detail: 'Очисти 5 ліній', stat: 'lines', target: 5, reward: 35 },
-    { id: 'coins', name: 'Шукач скарбів', detail: 'Збери 5 монеток на полі', stat: 'coins', target: 5, reward: 30 },
-    { id: 'upgrade', name: 'Нова сила', detail: 'Купи одне покращення', stat: 'upgrades', target: 1, reward: 20 },
-    { id: 'rats', name: 'Приборкувач щурів', detail: 'Переможи 3 щуролюдів', stat: 'ratWins', target: 3, reward: 60 },
+    { id: 'play', name: 'First Adventure', detail: 'Complete one battle', stat: 'games', target: 1, reward: 25 },
+    { id: 'blocks', name: 'Rune Master', detail: 'Place 10 pieces', stat: 'actions', target: 10, reward: 30 },
+    { id: 'lines', name: 'First Spells', detail: 'Clear 5 lines', stat: 'lines', target: 5, reward: 35 },
+    { id: 'coins', name: 'Treasure Hunter', detail: 'Collect 5 coins on the board', stat: 'coins', target: 5, reward: 30 },
+    { id: 'upgrade', name: 'Growing Stronger', detail: 'Buy one upgrade', stat: 'upgrades', target: 1, reward: 20 },
+    { id: 'rats', name: 'Rat Hunter', detail: 'Defeat ratfolk 3 times', stat: 'ratWins', target: 3, reward: 60 },
   ];
   const ACHIEVEMENTS = [
-    { id: 'wins10', name: 'Десять перемог', detail: 'Здобудь 10 перемог', stat: 'wins', target: 10, reward: 100 },
-    { id: 'lines100', name: 'Володар рун', detail: 'Очисти 100 ліній', stat: 'lines', target: 100, reward: 150 },
-    { id: 'tower', name: 'Підкорювач вежі', detail: 'Здолай Володаря вежі', stat: 'tower', target: 1, reward: 250 },
+    { id: 'wins10', name: 'Ten Victories', detail: 'Win 10 battles', stat: 'wins', target: 10, reward: 100 },
+    { id: 'lines100', name: 'Lord of Runes', detail: 'Clear 100 lines', stat: 'lines', target: 100, reward: 150 },
+    { id: 'tower', name: 'Tower Conqueror', detail: 'Defeat the Tower Lord', stat: 'tower', target: 1, reward: 250 },
   ];
   const STAT_KEYS = ['games', 'actions', 'lines', 'coins', 'upgrades', 'ratWins', 'wins', 'tower'];
   const amount = value => Number.isFinite(value) ? Math.max(0, Math.min(1e9, Math.floor(value))) : 0;
@@ -50,9 +54,9 @@ const CAMP = (() => {
     if (!raw || raw.version !== 1) return p;
     p.gold = amount(raw.gold);
     for (const k of Object.keys(UPGRADES)) p.levels[k] = Math.min(UPGRADES[k].cap, amount(raw.levels?.[k]));
-    // Campaign clearance must be a contiguous prefix; a damaged save cannot unlock arbitrary bosses.
+    // Keep reachable victories on either branch; old linear saves remain valid.
     const cleared = new Set(Array.isArray(raw.cleared) ? raw.cleared : []);
-    for (const e of ENEMIES) { if (!cleared.has(e.id)) break; p.cleared.push(e.id); }
+    for (const e of ENEMIES) { if (cleared.has(e.id) && unlocked(p,e.id)) p.cleared.push(e.id); }
     const ids = new Set([...QUESTS, ...ACHIEVEMENTS].map(q => q.id));
     p.claimed = [...new Set(Array.isArray(raw.claimed) ? raw.claimed.filter(id => ids.has(id)) : [])];
     p.settled = Array.isArray(raw.settled) ? raw.settled.filter(id => typeof id === 'string').slice(-100) : [];
@@ -62,7 +66,13 @@ const CAMP = (() => {
   function player(p) {
     return { hp: 100 + 15 * p.levels.hp, attack: 1 + .1 * p.levels.attack, armor: 0, loot: 1 + .1 * p.levels.loot };
   }
-  const unlocked = (p, id) => Number.isInteger(id) && id >= 0 && id < ENEMIES.length && (id === 0 || p.cleared.includes(id - 1));
+  const unlocked = (p,id) => Number.isInteger(id) && id >= 0 && id < ENEMIES.length && (id === 0 || p.cleared.includes(id) || PARENTS[id].some(parent => p.cleared.includes(parent)));
+  const recommended = p => ENEMIES.find(e => unlocked(p,e.id) && !p.cleared.includes(e.id))?.id ?? ENEMIES.length-1;
+  function danger(p,id) {
+    const e = ENEMIES[id], hero = player(p);
+    const ratio = (e.hp * e.attack / (1-e.armor)) / (hero.hp * hero.attack);
+    return ratio >= 1.55 ? 'high' : ratio >= 1.15 ? 'medium' : 'normal';
+  }
   const cost = (p, key) => UPGRADES[key] ? Math.ceil(UPGRADES[key].base * UPGRADES[key].growth ** p.levels[key]) : Infinity;
   function buy(p, key) {
     const u = UPGRADES[key];
@@ -77,6 +87,7 @@ const CAMP = (() => {
   function settle(p, battle) {
     const e = ENEMIES[battle.node];
     if (!e || !unlocked(p, e.id) || typeof battle.id !== 'string' || p.settled.includes(battle.id) || ![0, 1, -1].includes(battle.winner)) return null;
+    const availableBefore = ENEMIES.filter(e => unlocked(p,e.id)).map(e => e.id);
     const won = battle.winner === 0, first = won && !p.cleared.includes(e.id);
     const victoryBase = won ? (first ? e.reward : Math.max(10, Math.floor(e.reward * .3))) : 0;
     const loot = Number.isFinite(battle.loot) ? Math.max(1, Math.min(2, battle.loot)) : 1;
@@ -88,8 +99,9 @@ const CAMP = (() => {
     if (won) { p.stats.wins++; if (e.race === 'rat') p.stats.ratWins++; if (e.id === ENEMIES.length - 1) p.stats.tower = 1; }
     if (first) p.cleared.push(e.id);
     p.settled.push(battle.id); p.settled = p.settled.slice(-100);
-    return { field, victory, total: field + victory, first, won };
+    const opened = ENEMIES.filter(e => unlocked(p,e.id) && !availableBefore.includes(e.id)).map(e => e.id);
+    return { field, victory, total: field + victory, first, won, opened };
   }
-  return { KEY, RACES, ENEMIES, UPGRADES, QUESTS, ACHIEVEMENTS, create, restore, player, unlocked, cost, buy, claim, settle };
+  return { KEY, RACES, ENEMIES, PARENTS, ROUTES, recommended, danger, UPGRADES, QUESTS, ACHIEVEMENTS, create, restore, player, unlocked, cost, buy, claim, settle };
 })();
 if (typeof module !== 'undefined') module.exports = CAMP;

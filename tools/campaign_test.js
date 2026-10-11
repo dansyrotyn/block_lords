@@ -15,10 +15,10 @@ test('прокачка списує золото, підвищує характ�
   assert.equal(C.claim(p, 'upgrade'), true); assert.equal(p.gold, 30);
   assert.equal(C.claim(p, 'upgrade'), false); assert.equal(p.gold, 30);
 });
-test('перемога відкриває тільки наступного ворога; результат не оплачується двічі', () => {
+test('перша перемога відкриває розвилку; результат не оплачується двічі', () => {
   const p = C.create(); assert.equal(C.unlocked(p, 1), false);
   const r = C.settle(p, battle('first')); assert.equal(r.total, 51);
-  assert.equal(C.unlocked(p, 1), true); assert.equal(C.unlocked(p, 2), false);
+  assert.equal(C.unlocked(p, 1), true); assert.equal(C.unlocked(p, 6), true); assert.equal(C.unlocked(p, 2), false); assert.deepEqual(r.opened,[1,6]);
   const gold = p.gold, stats = { ...p.stats };
   assert.equal(C.settle(p, battle('first')), null); assert.equal(p.gold, gold); assert.deepEqual(p.stats, stats);
   const repeat = C.settle(p, battle('repeat')); assert.equal(repeat.victory, 13); assert.equal(repeat.first, false);
@@ -75,5 +75,30 @@ test('нокаут зупиняє бій і не дозволяє повторн
   const s = BD.newGame(1, 0); s.board = empty(); for (let i = 0; i < 7; i++) s.board[i] = 1;
   s.hp[1] = 1; s.hands[0] = [dot(), dot()]; BD.act(s, 0, 0, 7);
   assert.equal(BD.winner(s), 0); assert.throws(() => BD.act(s, 1, 1, 0), /over/);
+});
+test('оркова гілка дозволяє ранній сильний бій та вихід до демонів без лісового шляху', () => {
+  const p = C.create();
+  for (const id of [0,6,7,8,9,10,11]) {
+    assert.equal(C.unlocked(p,id),true);
+    assert.ok(C.settle(p,battle('branch-'+id,id)));
+  }
+  assert.equal(p.stats.tower,1);
+  assert.equal(C.unlocked(p,2),false);
+  assert.deepEqual(C.restore(JSON.parse(JSON.stringify(p))).cleared,p.cleared);
+  assert.equal(C.danger(C.create(),6),'high');
+});
+test('невдала спроба сильного ворога не закриває легший маршрут і не відкриває продовження', () => {
+  const p = C.create(); C.settle(p,battle('root'));
+  C.settle(p,battle('orc-loss',6,1));
+  assert.equal(C.unlocked(p,1),true); assert.equal(C.unlocked(p,6),true);
+  assert.equal(C.unlocked(p,7),false); assert.deepEqual(p.cleared,[0]);
+});
+test('старі лінійні збереження та нові перемоги не за порядком відновлюються', () => {
+  const legacy = C.create(); legacy.cleared = [0,1,2,3,4,5];
+  assert.deepEqual(C.restore(legacy).cleared,legacy.cleared);
+  const branched = C.create(); branched.cleared = [0,6,1,7];
+  assert.deepEqual(C.restore(branched).cleared,[0,1,6,7]);
+  const damaged = C.create(); damaged.cleared = [0,8,11];
+  assert.deepEqual(C.restore(damaged).cleared,[0]);
 });
 console.log(`\n${total} перевірок RPG пройдено`);

@@ -8,7 +8,7 @@
 .map-title h1 { font:21px/1.1 var(--font-display); margin:0 0 4px; color:#FFF0CA; text-shadow:0 2px 0 #152636; }
 .map-title > span { color:#FFD45B; font-size:12px; }
 .map-header .gold-pill { padding:7px 8px; font-size:13px; }
-.world-map { position:relative; width:100%; aspect-ratio:4/11; isolation:isolate; background:linear-gradient(#46476C,#997D52 40%,#56A544); }
+.world-map { position:relative; width:100%; aspect-ratio:4/14; isolation:isolate; background:linear-gradient(#46476C,#997D52 40%,#56A544); }
 .world-terrain { position:absolute; inset:0; width:100%; height:100%; object-fit:fill; pointer-events:none; }
 .world-road { position:absolute; inset:0; width:100%; height:100%; fill:none; stroke-linecap:round; pointer-events:none; filter:drop-shadow(0 2px 2px #25332266); }
 .world-node { position:absolute; transform:translate(-50%,-29px); width:68px; height:83px; display:flex; align-items:center; flex-direction:column; padding:0; border:0; background:none; z-index:2; }
@@ -65,3 +65,71 @@
 
 #scene.campaign, body[data-screen="campaign"] {background:#173D3B;}
 body[data-screen="campaign"] #soundBtn {display:none;}
+
+/* Ancient parchment makes the colored monster portraits the primary landmarks. */
+#campaign {background:#B69864;}
+#campaign .campaign-content {touch-action:none; cursor:grab; scrollbar-width:none; -webkit-overflow-scrolling:touch;}
+#campaign .campaign-content::-webkit-scrollbar {display:none;}
+#campaign .campaign-content.panning {cursor:grabbing;}
+.world-map {background:#D9BB7D;}
+.world-road {filter:none;}
+.route-edge {stroke:#77532C;stroke-width:9;stroke-dasharray:13 18;stroke-opacity:.48;}
+.route-edge.open {stroke:#684015;stroke-opacity:1;}
+.route-edge.shortcut {stroke-dasharray:7 19;}
+.world-node {width:116px;height:120px;transform:translate(-50%,-35px);}
+.monster-medallion {width:70px;height:70px;border:4px solid #F9DD8E;box-shadow:0 0 0 3px #694525,0 4px 8px #52331C80;background:#0E2031;}
+.monster-medallion img {border:2px solid #FAE9BC;}
+.world-node.locked img {filter:saturate(.8);}
+.world-node.locked .monster-medallion {border-color:#CDB478;box-shadow:0 0 0 3px #7A6445,0 3px 6px #52331C55;}
+.node-status {bottom:-5px;left:auto;right:-8px;transform:none;min-width:26px;height:26px;font-size:14px;box-shadow:0 1px 0 #472D17;}
+.world-node.cleared .monster-medallion {border-color:#B4E87A;box-shadow:0 0 0 3px #3E652F,0 4px 8px #52331C80;}
+.world-node.current .monster-medallion {border-color:#E1FCFF;box-shadow:0 0 0 4px #236988,0 0 0 7px #F9EBC0,0 4px 9px #52331C80;}
+.world-node.current::before {border-top-color:#17617D;filter:none;}
+.world-node.boss .monster-medallion {outline-color:#824A28;outline-offset:3px;}
+.node-name {margin-top:8px;display:block;width:116px;min-height:28px;padding:4px 5px;border-radius:7px;background:#3D2B1CEF;color:#FFF3D4;font:13px/1.15 var(--font-display);box-shadow:0 1px 0 #D8B778;text-shadow:none;}
+.node-caption {display:block;white-space:nowrap;padding:3px 5px;color:#684A29;font:10px/1.15 var(--font-body);font-weight:700;}
+.world-node.available .node-caption {color:#183E58;background:#F5E8BC;border-radius:5px;box-shadow:0 0 0 1px #B69A63;}
+.world-node.cleared .node-caption {color:#FFF2C9;background:#365B2C;border-radius:5px;}
+.world-node.current .node-caption {background:#165974;color:#FFF3CE;}
+.region-label {color:#755632;background:none;border:0;box-shadow:none;font:italic 15px/1.2 Georgia,serif;text-shadow:none;}
+.forest-label {left:8%;right:auto;top:96%;}
+.peaks-label {right:4%;left:auto;top:78%;}
+.tower-label {right:5%;top:4%;}
+.map-header {background:linear-gradient(#5C432E,#35271D);border-bottom-color:#BC9556;}
+.map-footer {background:linear-gradient(#58422B,#30251A);border-top-color:#BC9556;box-shadow:0 -3px 10px #4A321A44;}
+#scene.campaign,body[data-screen="campaign"] {background:#342A1E;}
+.gold-icon {display:inline-block;position:relative;flex:none;width:30px;height:30px;vertical-align:middle;border-radius:50%;border:2px solid #A56C0B;background:radial-gradient(circle at 35% 25%,#FFF5AA 0%,#FFDC46 38%,#F5B51B 72%,#DB8D09 100%);box-shadow:inset 0 0 0 2px #FFE985,0 2px 0 #784B13;}
+.gold-icon::after {content:'✦';position:absolute;inset:0;display:grid;place-items:center;color:#C08412;font:23px/1 Georgia,serif;text-shadow:0 1px 0 #FFF2A5;}
+.gold-pill {display:inline-flex;align-items:center;gap:8px;}
+.map-header .gold-pill {padding:5px 9px;background:#271F16;color:#FFECAA;font-size:18px;}
+.progress-hero .gold-pill {display:inline-flex;font-size:15px;padding:3px 8px;}
+.buy-btn > .gold-icon {width:28px;height:28px;}
+.quest-foot .gold-icon {width:21px;height:21px;}
+.quest-foot .gold-icon::after {font-size:16px;}
+.reward .gold-icon {width:32px;height:32px;}
+.battle-meta .gold-icon {width:18px;height:18px;border-width:1px;}
+.battle-meta .gold-icon::after {font-size:14px;}
+#board .cell.coin::after {width:82%;height:82%;top:9%;left:9%;border:2px solid #C0830B;background:radial-gradient(circle at 30% 25%,#FFF5AD,#FFE451 45%,#FFC323 70%,#EAA213);box-shadow:inset 0 0 0 1px #FFF1A3,0 0 7px #FFD33D99;color:#AA6C04;font-size:calc(var(--cs)*.62);text-shadow:0 1px 0 #FFF3B8;}
+.danger-note {padding:10px;border:1px solid #D9B45F;border-radius:9px;background:#594628;color:#FFE5A7!important;font-size:13px!important;}
+.victory-note {color:#BAE991!important;font-weight:700;}
+@media(max-width:350px){.world-node{width:100px;}.node-name{width:100px;font-size:12px;}.monster-medallion{width:64px;height:64px;}.map-header{gap:6px;padding-inline:10px;}.map-title h1{font-size:18px;}.map-header .gold-pill{font-size:16px;gap:4px;padding-inline:6px;}}
+.world-node {height:auto;}
+.world-node > span {flex-shrink:0;}
+.node-name {line-height:1.2;}
+.gold-icon {font-size:0;}
+/* One gentle route: labels sit beside markers so they never crowd the next enemy. */
+.world-node {width:70px;height:70px;}
+.world-node .node-name {position:absolute;top:4px;left:80px;width:116px;margin:0;text-align:center;}
+.world-node .node-caption {position:absolute;top:49px;left:80px;width:116px;text-align:center;}
+.world-node.label-left .node-name,.world-node.label-left .node-caption {left:auto;right:80px;}
+.peaks-label {left:5%;right:auto;top:41%;}
+@media(max-width:350px){.world-node .node-name,.world-node .node-caption{width:100px;}}
+/* Window content swipes directly; close controls stay fixed outside that scroll region. */
+.progress-content,#endScreen .panel {touch-action:none;scrollbar-width:none;cursor:grab;}
+.progress-content::-webkit-scrollbar,#endScreen .panel::-webkit-scrollbar {display:none;}
+.progress-content.panning,#endScreen .panel.panning {cursor:grabbing;}
+.window-header {align-items:center;min-height:44px;gap:12px;}
+.window-header h2 {min-width:0;font-size:22px;line-height:1.15;}
+.window-close {display:flex;align-items:center;justify-content:center;width:44px;height:44px;min-width:44px;min-height:44px;padding:10px;position:relative;z-index:2;font-size:0;line-height:0;border-radius:12px;touch-action:manipulation;}
+.window-close svg {display:block;width:22px;height:22px;flex:none;fill:none;stroke:#FFF2C7;stroke-width:3;stroke-linecap:round;pointer-events:none;}
+.enemy-panel > .window-close {top:10px;right:10px;}

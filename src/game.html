@@ -401,33 +401,33 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
       <span class="logo-word" aria-hidden="true"><span class="logo-letter">B</span><span class="logo-letter">L</span><span class="logo-letter">O</span><span class="logo-letter">C</span><span class="logo-letter">K</span></span>
       <span class="logo-word" aria-hidden="true"><span class="logo-letter">L</span><span class="logo-letter">O</span><span class="logo-letter">R</span><span class="logo-letter">D</span><span class="logo-letter">S</span></span>
     </h1>
-    <button class="play-btn" id="playBtn" type="button"><span>ПРИГОДА</span></button>
-    <div class="home-wallet">🪙 <span id="homeGold">60</span><small id="homeStats"></small></div>
-    <nav class="home-links" aria-label="Головне меню"><button class="btn-small" id="mapHome" type="button">Карта</button><button class="btn-small" id="upgradeHome" type="button">Прокачка</button><button class="btn-small" id="questsHome" type="button">Квести<span id="homeQuestCount"></span></button></nav>
+    <button class="play-btn" id="playBtn" type="button"><span>PLAY</span></button>
+    <div class="home-wallet"><span class="gold-icon" aria-hidden="true"></span> <span id="homeGold">60</span><small id="homeStats"></small></div>
+    <nav class="home-links" aria-label="Main menu"><button class="btn-small" id="mapHome" type="button">Map</button><button class="btn-small" id="upgradeHome" type="button">Upgrades</button><button class="btn-small" id="questsHome" type="button">Quests<span id="homeQuestCount"></span></button></nav>
   </section>
 
   <section class="screen" id="campaign" hidden>
     <header class="map-header" id="mapHeader">
-      <button class="map-home" id="campaignBack" type="button" aria-label="Головне меню">⌂</button>
-      <div class="map-title"><h1 id="campaignTitle">Шлях до вежі</h1><span>★ <b id="mapProgress">0 / 12</b></span></div>
-      <span class="gold-pill">🪙 <b id="campaignGold"></b></span>
+      <button class="map-home" id="campaignBack" type="button" aria-label="Main menu">⌂</button>
+      <div class="map-title"><h1 id="campaignTitle">Road to the Tower</h1><span>★ <b id="mapProgress">0 / 12</b></span></div>
+      <span class="gold-pill"><span class="gold-icon" aria-hidden="true"></span><b id="campaignGold"></b></span>
     </header>
     <p class="save-notice" id="saveNotice" hidden></p>
     <div class="campaign-content" id="campaignContent"></div>
-    <nav class="map-footer" id="mapFooter" aria-label="Меню пригоди">
-      <button type="button" class="map-menu-button" data-window="upgrades"><span class="menu-medallion" id="mapUpgradeIcon"></span><span>Прокачка</span></button>
-      <button type="button" class="map-menu-button" data-window="quests"><span class="menu-medallion" id="mapQuestIcon"></span><span>Квести</span><b class="quest-badge" id="mapQuestBadge" hidden></b></button>
+    <nav class="map-footer" id="mapFooter" aria-label="Adventure menu">
+      <button type="button" class="map-menu-button" data-window="upgrades"><span class="menu-medallion" id="mapUpgradeIcon"></span><span>Upgrades</span></button>
+      <button type="button" class="map-menu-button" data-window="quests"><span class="menu-medallion" id="mapQuestIcon"></span><span>Quests</span><b class="quest-badge" id="mapQuestBadge" hidden></b></button>
     </nav>
     <div class="campaign-window" id="progressWindow" hidden>
       <section class="progress-panel panel-look" role="dialog" aria-modal="true" aria-labelledby="progressTitle">
-        <header class="window-header"><h2 id="progressTitle"></h2><button id="progressClose" type="button" class="window-close" data-close aria-label="Закрити й повернутися до карти">×</button></header>
-        <div class="progress-hero"><img id="progressPortrait" alt="Герой"><div><p class="hero-summary" id="heroSummary"></p><span class="gold-pill">🪙 <b id="progressGold"></b></span></div></div>
+        <header class="window-header"><h2 id="progressTitle"></h2><button id="progressClose" type="button" class="window-close" data-close aria-label="Close and return to the map"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+        <div class="progress-hero"><img id="progressPortrait" alt="Hero"><div><p class="hero-summary" id="heroSummary"></p><span class="gold-pill"><span class="gold-icon" aria-hidden="true"></span><b id="progressGold"></b></span></div></div>
         <div id="progressContent" class="progress-content"></div>
       </section>
     </div>
     <div class="campaign-window" id="encounterWindow" hidden>
       <section class="enemy-panel panel-look" role="dialog" aria-modal="true" aria-labelledby="enemyTitle">
-        <button type="button" class="window-close" id="encounterClose" data-close aria-label="Закрити й повернутися до карти">×</button>
+        <button type="button" class="window-close" id="encounterClose" data-close aria-label="Close and return to the map"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         <div class="encounter" id="encounter"></div>
       </section>
     </div>
@@ -440,13 +440,13 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   </section>
 
   <section class="screen" id="game" hidden>
-    <button class="home-btn" id="leaveBtn" type="button" aria-label="Вийти з бою">
+    <button class="home-btn" id="leaveBtn" type="button" aria-label="Leave battle">
       <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 7.5L8 2l6 5.5V14H10v-4H6v4H2z" fill="#fff"/></svg>
     </button>
     <header class="hud panel-look">
       <div class="side you" id="side0">
         <div class="ava"><img id="ava0" alt=""></div>
-        <div class="id"><span id="flag0" class="race-tag"></span><b>Герой</b></div>
+        <div class="id"><span id="flag0" class="race-tag"></span><b>Hero</b></div>
       </div>
       <div class="side opp" id="side1">
         <div class="ava"><img id="ava1" alt=""></div>
@@ -483,18 +483,18 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     <div class="result" id="resultTitle">VICTORY!</div>
     <div class="duo" id="duo"></div>
     <div class="reward-summary" id="rewardSummary"></div>
-    <div class="result-options"><button class="btn-small" id="resultMap" type="button">До карти</button><button class="btn-small" id="resultUpgrade" type="button">Прокачка</button></div>
-    <button class="btn-big" id="againBtn" type="button">ЩЕ РАЗ</button>
-    <button class="btn-small" id="homeBtn" type="button">Меню</button>
+    <div class="result-options"><button class="btn-small" id="resultMap" type="button">Back to Map</button><button class="btn-small" id="resultUpgrade" type="button">Upgrades</button></div>
+    <button class="btn-big" id="againBtn" type="button">PLAY AGAIN</button>
+    <button class="btn-small" id="homeBtn" type="button">Menu</button>
   </div>
 </div>
 <div class="overlay" id="leaveScreen" hidden>
   <div class="panel panel-look" role="dialog" aria-labelledby="leaveTitle">
-    <div class="result lose" id="leaveTitle" style="font-size:34px">Вийти з бою?</div>
-    <p>Зібране золото й бойові квести зараховуються лише після завершення бою.</p>
+    <div class="result lose" id="leaveTitle" style="font-size:34px">Leave battle?</div>
+    <p>Collected gold and battle quest progress are saved only when the battle ends.</p>
     <div class="row-btns">
-      <button class="btn-small" id="leaveYes" type="button">Вийти</button>
-      <button class="btn-big" id="leaveNo" type="button" style="font-size:22px;padding:11px 0 13px">Залишитись</button>
+      <button class="btn-small" id="leaveYes" type="button">Leave</button>
+      <button class="btn-big" id="leaveNo" type="button" style="font-size:22px;padding:11px 0 13px">Stay</button>
     </div>
   </div>
 </div>
@@ -986,7 +986,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     const { firstHit, done } = flyBlocks(cells, res.before, victim);
     renderBoard(S.board);
     if (res.mult > 1) { const [x, y] = center(stackEl); floatText('tag', 'x' + res.mult, x, y - 20); sfx('x2'); }
-    if (res.bonus) { banner('КОМБО! +1', 'gold small', 1000); sfx('combo'); }
+    if (res.bonus) { banner('COMBO! +1', 'gold small', 1000); sfx('combo'); }
     await firstHit;
     if (myGen !== gen) return;
     bump($('side' + victim), 'hit');
@@ -1017,9 +1017,9 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
       renderTray(true);
       renderTurnbar();
       clockNum.textContent = BD.CONFIG.turnSeconds;
-      if (S.round === BD.CONFIG.rounds && S.turn === S.first) { await banner('ОСТАННІЙ РАУНД', 'gold small', 1000); if (myGen !== gen) return; }
+      if (S.round === BD.CONFIG.rounds && S.turn === S.first) { await banner('FINAL ROUND', 'gold small', 1000); if (myGen !== gen) return; }
       sfx(S.turn === 0 ? 'yourturn' : 'oppturn');
-      await banner(S.turn === 0 ? 'ТВІЙ ХІД' : 'ХІД ВОРОГА', S.turn === 0 ? 'you' : 'opp');
+      await banner(S.turn === 0 ? 'YOUR TURN' : 'ENEMY TURN', S.turn === 0 ? 'you' : 'opp');
       if (myGen !== gen) return;
       timer.left = BD.CONFIG.turnSeconds * 1000;
       timer.running = true;
@@ -1028,7 +1028,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
       setBusy(true);
       bump(trayEl, 'shake');
       sfx('nospace');
-      await banner('НЕМАЄ МІСЦЯ!', 'small', 1100);
+      await banner('NO SPACE!', 'small', 1100);
       if (myGen !== gen) return;
       BD.burn(S);
       renderTray(true);
@@ -1046,7 +1046,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     if (drag) cancelDrag();
     setPreview(1, 0);
     sfx('timeup');
-    await banner('ЧАС ВИЙШОВ!', 'small', 1100);
+    await banner('TIME UP!', 'small', 1100);
     if (myGen !== gen) return;
     BD.timeout(S);
     step(myGen);
@@ -1248,14 +1248,14 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     const reward = finishEncounter(w);
     sfx(w === 0 ? 'win' : w === 1 ? 'lose' : 'draw');
     const t = $('resultTitle');
-    t.textContent = w === 0 ? 'ПЕРЕМОГА!' : w === 1 ? 'ПОРАЗКА' : 'НІЧИЯ';
+    t.textContent = w === 0 ? 'VICTORY!' : w === 1 ? 'DEFEAT' : 'DRAW';
     t.className = 'result ' + (w === 0 ? 'win' : w === 1 ? 'lose' : '');
     const hpLine = v => `<div class="hpleft">${v} HP</div>`;
     $('duo').innerHTML =
-      cardHTML(HERO_AVATAR, '<b>Герой</b>', w === 1 ? 'loser' : '', hpLine(S.hp[0])) +
+      cardHTML(HERO_AVATAR, '<b>Hero</b>', w === 1 ? 'loser' : '', hpLine(S.hp[0])) +
       '<div class="vs-word">VS</div>' +
       cardHTML(opp.avatar, `<b>${esc(opp.name)}</b>`, w === 0 ? 'loser' : '', hpLine(S.hp[1]), 'opp');
-    if (reward) $('rewardSummary').innerHTML = `<strong>+${reward.total} 🪙</strong><small>Поле: ${reward.field} · Перемога: ${reward.victory}</small><small>${reward.first ? opp.id === 11 ? 'Вежу підкорено! Глава завершена.' : 'Новий супротивник відкритий!' : w === 0 ? 'Повторна перемога — менша нагорода.' : 'Зібране золото збережено. Спробуй ще раз!'}</small><small>${readyCount() ? `Готові квести: ${readyCount()}` : ''}</small>`;
+    if (reward) $('rewardSummary').innerHTML = `<strong>+${reward.total} ${GOLD_ICON}</strong><small>Board: ${reward.field} · Victory: ${reward.victory}</small><small>${reward.first ? opp.id === 11 ? 'Tower conquered! Chapter complete.' : reward.opened.length ? `New encounters unlocked: ${reward.opened.length}` : 'Enemy defeated!' : w === 0 ? 'Replay victories grant a smaller reward.' : 'Collected gold saved. Try again!'}</small><small>${readyCount() ? `Quests ready: ${readyCount()}` : ''}</small>`;
     $('endScreen').hidden = false;
   }
 

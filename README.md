@@ -10,7 +10,15 @@ npm test
 python3 -m http.server 8765 --bind 127.0.0.1
 ```
 
-Відкрий http://127.0.0.1:8765/dist/blockbusters.html. Зібраний HTML можна відкрити напряму; для стабільного збереження краще користуватися одним локальним URL. Файл самодостатній, окрім необов’язкових Google Fonts. Збірка потребує Node.js 18+, без встановлення залежностей.
+Відкрий http://127.0.0.1:8765/ або http://127.0.0.1:8765/dist/index.html. Стара адреса `dist/blockbusters.html` перенаправляє на актуальну гру. Зібраний `dist/index.html` можна відкрити напряму; для стабільного збереження краще користуватися одним локальним URL. Файл самодостатній, окрім необов’язкових Google Fonts. Збірка потребує Node.js 18+, без встановлення залежностей.
+
+## GitHub Pages
+
+Сайт: https://dansyrotyn.github.io/block_lords/.
+
+У **Settings → Pages** використовується **Deploy from a branch → main → /(root)**. Кореневий `index.html` відкриває `./dist/index.html`; відносний шлях підтримує префікс `/block_lords/`. `.nojekyll` дозволяє публікувати готовий сайт без перетворення Jekyll. Наявне автоматичне розгортання Pages запускається після push у `main`.
+
+Перед коммітом змін запускай `npm run build`: він оновлює гру, обидві вхідні сторінки й `.nojekyll`. `dist/` містить окремий готовий сайт для іншого статичного хостингу. Для експорту єдиного самодостатнього файла використай `node build.js /absolute/path/game.html`.
 
 ## Реалізовано
 
@@ -53,8 +61,8 @@ python3 -m http.server 8765 --bind 127.0.0.1
 | src/map.css | Мальована карта, нижня навігація та окремі вікна |
 | src/debug-tools.js, src/debug-ui.js, src/debug.css | Тестові правила, sandbox, редактори та інспектор стану |
 | src/game.html | Екрани, адаптивність, перетягування, анімації, звук |
-| build.js | Збірка dist/blockbusters.html |
-| tools/test.js, tools/campaign_test.js, tools/debug_test.js | 41 перевірка рушія, прогресії та тестових інструментів |
+| build.js | Збірка dist/index.html, кореневого входу та старого посилання |
+| tools/test.js, tools/campaign_test.js, tools/debug_test.js, tools/pages_test.js | 43 перевірки рушія, прогресії, тестових інструментів і входів GitHub Pages |
 | tools/campaign_balance.js | Симуляція боїв із босом та повної економіки кампанії |
 
 Ключ профілю: block-lords.campaign.v1. localhost і 127.0.0.1 мають окремий прогрес. Вихід або перезавантаження незавершеного бою скасовує його нагороди.

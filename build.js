@@ -1,7 +1,7 @@
-// Збирає гру в один самодостатній HTML-файл: node build.js [вихідний файл]
+// За замовчуванням збирає сайт для GitHub Pages; аргумент експортує один HTML.
 const fs = require('fs'), path = require('path');
 const root = __dirname;
-const out = process.argv[2] || path.join(root, 'dist', 'blockbusters.html');
+const out = process.argv[2] || path.join(root, 'dist', 'index.html');
 const b64 = f => fs.readFileSync(f).toString('base64');
 const MIME = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp', mp3: 'audio/mpeg', wav: 'audio/wav' };
 const dataUri = f => `data:${MIME[path.extname(f).slice(1)]};base64,` + b64(f);
@@ -52,3 +52,27 @@ ${html}
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, page);
 console.log(`built ${path.relative(root, out)}: ${(page.length / 1024).toFixed(0)} KB, ${avatars.length} avatars, ${Object.keys(SFX).length} sounds`);
+
+if (!process.argv[2]) {
+  // Relative redirects work both at localhost / and GitHub Pages /block_lords/.
+  // Keep the old game URL and its query/hash; replace avoids an extra Back step.
+  const entry = target => `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#000000">
+<title>Block Lords</title>
+<meta http-equiv="refresh" content="0; url=${target}">
+<style>body{margin:0;background:#000;color:#fff;font:18px system-ui;text-align:center;padding:3rem}a{color:#FFD269}</style>
+<script>window.location.replace(${JSON.stringify(target)} + window.location.search + window.location.hash);</script>
+</head>
+<body><p><a href="${target}">Open Block Lords</a></p></body>
+</html>
+`;
+  fs.writeFileSync(path.join(root,'index.html'),entry('./dist/index.html'));
+  fs.writeFileSync(path.join(root,'dist','blockbusters.html'),entry('./index.html'));
+  fs.writeFileSync(path.join(root,'.nojekyll'),'');
+  fs.writeFileSync(path.join(root,'dist','.nojekyll'),'');
+  console.log('built index.html entry, legacy redirect, and .nojekyll markers');
+}

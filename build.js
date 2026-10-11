@@ -11,8 +11,8 @@ const avDir = path.join(root, 'assets', 'avatars');
 const avatars = fs.readdirSync(avDir).filter(f => f.endsWith('.jpg')).sort().map(f => dataUri(path.join(avDir, f)));
 const player = dataUri(path.join(root, 'assets', 'player.jpg'));
 
-// арт: фон, поле, камінь
-const ART = { __HOME__: 'home.jpg', __BOARD__: 'board.webp', __STONE__: 'stone.png', __BGTOP__: 'bg_top.webp', __BGBOTTOM__: 'bg_bottom.webp' };
+// арт: фон меню, поле і фони матчу
+const ART = { __HOME__: 'home-ui-reference.png', __BOARD__: 'arena-runes.png', __HERO__: 'hero-mage.jpg', __RAT__: 'rat-scout.jpg', __MAGIC__: 'magic-block.png', __BGTOP__: 'bg_top.webp', __BGBOTTOM__: 'bg_bottom.webp' };
 
 // звуки: ім'я файлу без розширення = ім'я звуку в коді (sfx('place1'))
 const sfxDir = path.join(root, 'assets', 'sfx');
@@ -21,16 +21,19 @@ for (const f of fs.readdirSync(sfxDir).filter(f => /\.(mp3|wav)$/.test(f)).sort(
 
 const engine = fs.readFileSync(path.join(root, 'src', 'engine.js'), 'utf8').replace("if (typeof module !== 'undefined') module.exports = BD;", '');
 let html = fs.readFileSync(path.join(root, 'src', 'game.html'), 'utf8');
-for (const [token, file] of Object.entries(ART)) html = html.split(token).join(dataUri(path.join(root, 'assets', 'art', file)));
 html = html
   .replace('/*SFX*/{}', () => JSON.stringify(SFX))
   .replace('/*ENGINE*/', () => engine)
+  .replace('/*CAMPAIGN*/', () => fs.readFileSync(path.join(root, 'src', 'campaign.js'), 'utf8').replace("if (typeof module !== 'undefined') module.exports = CAMP;", ''))
+  .replace('/*RPG_UI*/', () => fs.readFileSync(path.join(root, 'src', 'rpg-ui.js'), 'utf8'))
   .replace('/*AVATARS*/[]', () => JSON.stringify(avatars))
   .replace("'/*PLAYER*/'", () => JSON.stringify(player));
 
+for (const [token, file] of Object.entries(ART)) html = html.split(token).join(dataUri(path.join(root, 'assets', 'art', file)));
+
 // повноцінна сторінка, щоб файл відкривався в браузері напряму
 const page = `<!doctype html>
-<html lang="en">
+<html lang="uk">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">

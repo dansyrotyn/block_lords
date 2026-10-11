@@ -1,4 +1,4 @@
-<title>Blockbusters</title>
+<title>Block Lords</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lilita+One&display=swap">
@@ -45,7 +45,19 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 
 body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%, #6FA834 70%, #55932F 100%); }
 #scene { position: fixed; top: 0; bottom: 0; left: 50%; width: min(100vw, 560px); transform: translateX(-50%); z-index: 0; }
-#scene.home { background: linear-gradient(180deg, #2B99FE, #3EA2FB) ; background-image: url("__HOME__"); background-repeat: no-repeat; background-color: #2B99FE; }
+#scene.home { overflow: hidden; background: #2B99FE; }
+#scene.home::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: url("__HOME__");
+  background-position: var(--home-position); background-size: var(--home-size); background-repeat: no-repeat;
+  transform-origin: 50% 24%; animation: journey 4s ease-in-out infinite;
+}
+@keyframes journey {
+  0%, 100% { transform: scale(1.025) translate3d(-1px, 0, 0); }
+  25% { transform: scale(1.03) translate3d(1px, 2px, 0); }
+  50% { transform: scale(1.035) translate3d(1px, 0, 0); }
+  75% { transform: scale(1.03) translate3d(-1px, 2px, 0); }
+}
 #scene.game { background:
   url("__BGTOP__") center top / 100% auto no-repeat,
   url("__BGBOTTOM__") center bottom / 100% auto no-repeat,
@@ -60,8 +72,17 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   box-shadow: 0 0 0 3px var(--line), inset 0 2px 0 rgba(255, 255, 255, .18), 0 7px 0 rgba(10, 20, 40, .35);
 }
 
-/* ---------- stone blocks (art from the mock) ---------- */
-.blk { position: relative; border-radius: calc(var(--cs) * .12); background: url("__STONE__") center / 100% 100% no-repeat; }
+/* ---------- magical crystal rune blocks ---------- */
+.blk {
+  position: relative; border-radius: calc(var(--cs) * .14);
+  background: url("__MAGIC__") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 0 calc(var(--cs) * .045) rgba(50,225,255,.45));
+}
+/* Keep special symbols readable over the glowing rune. */
+.blk.bomb::before, .blk.x2::before {
+  content: ''; position: absolute; inset: 20%; border-radius: 22%;
+  background: radial-gradient(ellipse, #245997 45%, rgba(36,89,151,.9) 65%, transparent 75%);
+}
 .blk.bomb::after { content: ''; position: absolute; inset: 12% 12% 18%; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='18' cy='23' r='12.5' fill='%23262A38'/%3E%3Ccircle cx='13.5' cy='18.5' r='3.6' fill='%23fff' opacity='.42'/%3E%3Crect x='21.5' y='7.5' width='8' height='6.5' rx='1.6' transform='rotate(42 25.5 10.8)' fill='%234A5064'/%3E%3Cpath d='M28.5 7.5q2.5-4.5 6-2.6' stroke='%239A7546' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='35' cy='5' r='3.6' fill='%23FFC93C'/%3E%3Ccircle cx='35' cy='5' r='1.7' fill='%23FF6A3D'/%3E%3C/svg%3E") center / contain no-repeat; }
 .blk.x2::after {
   content: 'x2'; position: absolute; inset: 0 0 8%; display: grid; place-items: center;
@@ -71,7 +92,22 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
 
 /* ---------- home ---------- */
 #home { padding: 0; }
-.logo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.logo {
+  position: fixed; margin: 0; display: flex; flex-direction: column; align-items: center;
+  gap: calc(var(--lw) * .012); width: var(--lw); height: var(--lh); justify-content: center;
+  font: calc(var(--lw) * .145) / 1 var(--font-display); text-shadow: var(--outline);
+}
+.logo-word { display: flex; gap: calc(var(--lw) * .008); }
+.logo-letter {
+  display: grid; place-items: center; width: calc(var(--lw) * .17); height: calc(var(--lw) * .185);
+  padding-bottom: calc(var(--lw) * .018); border: calc(var(--lw) * .006) solid #17345B;
+  border-radius: calc(var(--lw) * .025); color: #F1FEFF;
+  background: linear-gradient(150deg, #ADF6FF, #46BDDC 42%, #387AC0 80%, #28548F 81%);
+  box-shadow: inset 0 calc(var(--lw) * .01) 0 #D5FCFF, 0 calc(var(--lw) * .014) 0 rgba(18,46,77,.35);
+}
+.logo-word:last-child .logo-letter {
+  color: #FFF5C9; background: linear-gradient(150deg, #FFE6A1, #E9B849 42%, #CF8C34 80%, #956127 81%);
+}
 .play-btn {
   position: fixed; display: grid; place-items: center; padding: 0 0 calc(var(--ph) * .1); overflow: hidden;
   width: var(--pw); height: var(--ph); border-radius: calc(var(--ph) * .27);
@@ -261,15 +297,119 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   .id b { font-size: 17px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .play-btn, .play-btn::before, .clock.low { animation: none !important; }
+  .play-btn, .play-btn::before, .clock.low, #scene.home::before { animation: none !important; }
 }
+
+/* ---------- polished fantasy UI from the supplied references ---------- */
+#scene.home::before { animation: none; transform: none; }
+#home .logo { opacity: 0; pointer-events: none; }
+#home .play-btn, #home .play-btn:active { background: none; border: 0; box-shadow: none; animation: none; }
+#home .play-btn::before { display: none; }
+#home .play-btn span { opacity: 0; }
+.panel-look { border-color: #EFCB75; background: radial-gradient(ellipse at 50% 0%,#145292 0%,#083369 42%,#061B36 100%); box-shadow: 0 0 0 2px #5D3A18,inset 0 0 0 2px #2787B4,inset 0 2px 0 #FFF1B3,0 5px 0 #08172E99; }
+.panel-look::after { pointer-events: none; }
+.hud { border-radius: 16px; }
+.hud::before { content: '◆'; position: absolute; left: calc(50% - 11px); top: -12px; color: #9DF9FF; font: 22px var(--font-display); text-shadow: 0 0 8px #25BEFF,0 2px 0 #D8A348; }
+.ava { background: #DCAE50 !important; box-shadow: 0 0 0 2px #422915,inset 0 2px 0 #FFF1AB,0 0 9px #4FC7FF66; }
+.side.opp .ava { background: #E77886 !important; }
+.clock { background: radial-gradient(circle,#134B86,#051C3B 70%); border-color: #E5B65B; box-shadow: 0 0 0 3px #614521,inset 0 0 10px #37C8FF,0 0 8px #4EACFF77; }
+.clock .bar { stroke: #55D8FF; }
+.tray { background: linear-gradient(180deg,#0C3964,#04172E); border-color: #EDC86A; border-radius: 16px; box-shadow: 0 0 0 2px #604622,inset 0 0 0 2px #2580A6,0 5px 0 #10203355; }
+.slot { background: radial-gradient(ellipse at 50% 40%,#143650,#061A2D); border: 1px solid #257095; border-radius: 14px; }
+.btn-small { border-color: #C79D4D; background: linear-gradient(#134D82,#082A4D); }
+.home-links button { box-shadow: inset 0 0 0 1px #49A8D366,0 3px 0 #11223D66; }
+.cell.coin::after { color: #CE8E13; background: radial-gradient(circle at 38% 30%,#FFEE9C,#FFC040 55%,#D08A0E); text-shadow: 0 0 3px #FFFDC7; box-shadow: inset 0 0 0 1px #FFF1AA,0 0 8px #FFC948; }
+/* ---------- campaign and progression ---------- */
+#app { touch-action: auto; }
+#home, #game, #search { touch-action: none; }
+.home-wallet { position: absolute; top: 12px; left: 14px; padding: 8px 12px; border-radius: 14px; background: #203954e8; border: 2px solid #18304F; font-weight: 600; }
+.home-wallet small { display: block; font-size: 12px; color: #C7E8FF; margin-top: 3px; }
+.home-links { position: absolute; bottom: max(14px, env(safe-area-inset-bottom)); left: 14px; right: 14px; display: flex; gap: 8px; }
+.home-links button { flex: 1; padding: 12px 4px; font-size: 15px; }
+#campaign { padding-top: 46px; gap: 12px; background: linear-gradient(180deg,#16324Ddf,#16324D99); touch-action: pan-y; }
+.campaign-header { display: flex; align-items: center; gap: 10px; flex: none; }
+.campaign-header h1 { margin: 0; font: 24px/1 var(--font-display); flex: 1; text-shadow: var(--outline); }
+.campaign-header .btn-small { padding: 8px 10px; font-size: 18px; }
+.gold-pill { background: #17314D; border: 2px solid #DBB14B; border-radius: 14px; padding: 7px 10px; color: #FFE9A1; font-weight: 700; white-space: nowrap; }
+.hero-summary { margin: 0; font-size: 13px; text-align: center; color: #D5EEFF; }
+.campaign-tabs { display: flex; gap: 6px; flex: none; }
+.campaign-tabs button { flex: 1; border: 2px solid #14283E; border-radius: 12px; background: #294C75; padding: 10px 3px; font-weight: 600; font-size: 14px; }
+.campaign-tabs button[aria-pressed="true"] { background: #477CCC; border-color: #8CE7FF; }
+.campaign-content { flex: 1; overflow: auto; min-height: 0; padding: 4px 4px 12px; scrollbar-width: thin; overscroll-behavior: contain; }
+.campaign-intro { text-align: center; margin: 6px 0 18px; font-size: 16px; }
+.campaign-intro small { font-size: 12px; color: #C8E4FA; }
+.map-route { position: relative; display: flex; flex-direction: column; gap: 16px; padding: 0 4px 18px; }
+.map-route::before { content: ''; position: absolute; width: 4px; top: 30px; bottom: 46px; left: 50%; background: repeating-linear-gradient(to bottom,#ECC86F 0 8px,transparent 8px 15px); opacity: .45; }
+.map-node { display: flex; align-items: center; gap: 10px; position: relative; width: 82%; padding: 8px; border: 2px solid #375F82; border-radius: 18px; background: #1E3B5Fee; text-align: left; min-height: 72px; }
+.map-node:nth-child(3n+1) { align-self: flex-start; }
+.map-node:nth-child(3n+2) { align-self: center; }
+.map-node:nth-child(3n) { align-self: flex-end; }
+.map-node.selected { border-color: #B2F4FF; background: #3D6899; box-shadow: 0 0 10px #77DFFFAA; }
+.map-node.cleared .node-orb { border-color: #89E887; }
+.map-node:disabled { opacity: .46; cursor: default; }
+.node-orb { position: relative; width: 52px; height: 52px; flex: none; border: 2px solid #FFD779; border-radius: 16px; }
+.node-orb img { border-radius: 13px; width: 100%; height: 100%; }
+.node-orb i { position: absolute; right: -6px; bottom: -6px; background: #193151; border: 1px solid #DFC477; border-radius: 9px; padding: 2px 5px; font: 13px var(--font-display); color: #FFE4A1; }
+.map-node > span:last-child { font: 16px/1.2 var(--font-display); }
+.map-node small { display: block; font: 12px var(--font-body); color: #C5DFF5; margin-top: 4px; }
+.encounter { flex: none; padding: 12px; }
+.encounter-heading { display: flex; align-items: center; gap: 9px; }
+.encounter-heading img { width: 44px; height: 44px; border: 2px solid #7EC7FA; border-radius: 13px; }
+.encounter h2, .upgrade-card h2, .quest-card h2 { font: 19px/1.15 var(--font-display); margin: 0 0 4px; }
+.encounter small, .upgrade-card small { color: #C8E4FA; font-size: 12px; }
+.enemy-stats { display: flex; justify-content: space-between; margin-top: 10px; font-size: 13px; }
+.encounter p { margin: 8px 0; font-size: 12px; color: #D8E9FA; }
+.fight-row { display: flex; align-items: center; gap: 12px; }
+.reward { flex: 1; font: 22px var(--font-display); color: #FFE084; }
+.reward small { display: block; font: 11px var(--font-body); color: #D3E6F6; }
+.fight-btn { font-size: 23px; width: 54%; border-radius: 14px; padding: 10px 0 14px; }
+.battle-rule { display: block; text-align: center; margin-top: 9px; }
+.upgrade-card { padding: 16px 12px; margin-bottom: 16px; display: grid; grid-template-columns: 32px 1fr; gap: 10px; }
+.upgrade-icon { font: 30px var(--font-display); color: #FFE18A; }
+.upgrade-card p { margin: 9px 0 6px; font-size: 16px; color: #B3F6F7; }
+.buy-btn { grid-column: 1 / -1; padding: 10px; border-radius: 12px; background: linear-gradient(#81D96B,#3D9F3E); border: 2px solid #153F28; font-weight: 700; font-size: 20px; }
+.buy-btn small { display: block; font-size: 12px; color: white; }
+.buy-btn:disabled, .claim-btn:disabled { background: #304662; color: #AFC2D7; opacity: .7; cursor: default; }
+.quest-card { padding: 15px; margin-bottom: 14px; }
+.quest-card p { margin: 5px 0 10px; font-size: 13px; color: #C8E4FA; }
+.quest-progress { height: 8px; border-radius: 6px; background: #162D46; overflow: hidden; }
+.quest-progress span { display: block; height: 100%; background: linear-gradient(90deg,#64D982,#A7F7BA); }
+.quest-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; gap: 8px; }
+.quest-foot small { color: #FFE294; }
+.claim-btn { padding: 8px 12px; border-radius: 11px; border: 2px solid #184935; background: #55AE62; font-size: 13px; }
+.section-label { font: 20px var(--font-display); margin: 12px 2px; }
+.save-notice { margin: 0; padding: 7px; font-size: 12px; background: #604F32; border-radius: 8px; }
+.battle-meta { position: absolute; top: calc(100% + 30px); left: 0; right: 0; text-align: center; font-size: 11px; text-shadow: var(--outline); }
+.race-tag { font-size: 11px; color: #CAE8FF; white-space: nowrap; }
+.cell.coin::after { content: '✦'; position: absolute; width: 62%; height: 62%; top: 19%; left: 19%; display: grid; place-items: center; font: calc(var(--cs) * .45)/1 var(--font-display); color: #936024; border-radius: 50%; border: max(1px,calc(var(--cs) * .05)) solid #B77C26; background: linear-gradient(135deg,#FFF2A2,#FFC94A 60%,#E39A2B); box-shadow: inset 0 1px 0 #FFF4C0,0 0 7px #FFE48D88; }
+.reward-summary { text-align: center; font-size: 15px; color: #FFE293; }
+.reward-summary strong { display: block; font: 27px var(--font-display); }
+.reward-summary small { display: block; color: #D3E8FA; margin-top: 4px; }
+.result-options { display: flex; gap: 8px; width: 100%; }
+.result-options button { flex: 1; padding: 9px 4px; font-size: 14px; }
+#endScreen .panel { gap: 13px; max-height: calc(100dvh - 30px); overflow: auto; }
+@media (max-height: 700px) { #campaign { padding-top: 38px; gap: 8px; } .encounter { padding: 9px; } .campaign-header h1 { font-size: 21px; } .encounter p { margin: 5px 0; } }
+
+.cell:not(.blk){background:rgba(34,48,61,.12);box-shadow:inset 0 0 0 1px rgba(20,32,45,.35);border-radius:3px}
 </style>
 
 <div id="scene" aria-hidden="true"></div>
 <div id="app">
   <section class="screen" id="home">
-    <h1 class="logo">Blockbusters</h1>
-    <button class="play-btn" id="playBtn" type="button"><span>PLAY</span></button>
+    <h1 class="logo" id="homeLogo" aria-label="Block Lords">
+      <span class="logo-word" aria-hidden="true"><span class="logo-letter">B</span><span class="logo-letter">L</span><span class="logo-letter">O</span><span class="logo-letter">C</span><span class="logo-letter">K</span></span>
+      <span class="logo-word" aria-hidden="true"><span class="logo-letter">L</span><span class="logo-letter">O</span><span class="logo-letter">R</span><span class="logo-letter">D</span><span class="logo-letter">S</span></span>
+    </h1>
+    <button class="play-btn" id="playBtn" type="button"><span>ПРИГОДА</span></button>
+    <div class="home-wallet">🪙 <span id="homeGold">60</span><small id="homeStats"></small></div>
+    <nav class="home-links" aria-label="Головне меню"><button class="btn-small" id="mapHome" type="button">Карта</button><button class="btn-small" id="upgradeHome" type="button">Прокачка</button><button class="btn-small" id="questsHome" type="button">Квести<span id="homeQuestCount"></span></button></nav>
+  </section>
+
+  <section class="screen" id="campaign" hidden>
+    <header class="campaign-header"><button class="btn-small" id="campaignBack" type="button" aria-label="Головне меню">‹</button><h1 id="campaignTitle">Шлях до вежі</h1><span class="gold-pill">🪙 <span id="campaignGold">60</span></span></header>
+    <p class="hero-summary" id="heroSummary"></p><p class="save-notice" id="saveNotice" hidden></p>
+    <nav class="campaign-tabs" aria-label="Кампанія"><button type="button" data-tab="map">Карта</button><button type="button" data-tab="upgrades">Прокачка</button><button type="button" data-tab="quests">Квести</button></nav>
+    <div class="campaign-content" id="campaignContent"></div><aside class="encounter panel-look" id="encounter"></aside>
   </section>
 
   <section class="screen" id="search" hidden>
@@ -279,17 +419,17 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   </section>
 
   <section class="screen" id="game" hidden>
-    <button class="home-btn" id="leaveBtn" type="button" aria-label="Leave match">
+    <button class="home-btn" id="leaveBtn" type="button" aria-label="Вийти з бою">
       <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 7.5L8 2l6 5.5V14H10v-4H6v4H2z" fill="#fff"/></svg>
     </button>
     <header class="hud panel-look">
       <div class="side you" id="side0">
         <div class="ava"><img id="ava0" alt=""></div>
-        <div class="id"><span id="flag0"></span><b>You</b></div>
+        <div class="id"><span id="flag0" class="race-tag"></span><b>Герой</b></div>
       </div>
       <div class="side opp" id="side1">
         <div class="ava"><img id="ava1" alt=""></div>
-        <div class="id"><span id="flag1"></span><b id="oppName"></b></div>
+        <div class="id"><span id="flag1" class="race-tag"></span><b id="oppName"></b></div>
       </div>
       <div class="hprow">
         <div class="hp you" id="hp0"><div class="track"><i class="trail"></i><i class="pv"></i><i class="fill"></i><span class="num">100 / 100</span></div><svg class="heart" viewBox="0 0 36 34" aria-hidden="true"><path d="M18 31C7 23 2.5 17.5 2.5 11.2A8 8 0 0 1 18 7.4A8 8 0 0 1 33.5 11.2C33.5 17.5 29 23 18 31Z" fill="#FF3B5C" stroke="#0F1830" stroke-width="2.6" stroke-linejoin="round"/><path d="M18 27.5C10.5 21.5 7 17 6.8 12.5" stroke="#C8163A" stroke-width="3" fill="none" stroke-linecap="round" opacity=".5"/><ellipse cx="10.5" cy="11.5" rx="3.6" ry="2.4" transform="rotate(-35 10.5 11.5)" fill="#fff" opacity=".8"/></svg></div>
@@ -300,6 +440,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
         <span class="num" id="clockNum"></span>
         <div class="pips" id="pips"></div>
       </div>
+      <div class="battle-meta" id="battleMeta"></div>
     </header>
     <main class="board-wrap" id="boardWrap">
       <div class="frame" id="frame">
@@ -320,23 +461,26 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   <div class="panel panel-look" role="dialog" aria-labelledby="resultTitle">
     <div class="result" id="resultTitle">VICTORY!</div>
     <div class="duo" id="duo"></div>
-    <button class="btn-big" id="againBtn" type="button">PLAY AGAIN</button>
-    <button class="btn-small" id="homeBtn" type="button">Home</button>
+    <div class="reward-summary" id="rewardSummary"></div>
+    <div class="result-options"><button class="btn-small" id="resultMap" type="button">До карти</button><button class="btn-small" id="resultUpgrade" type="button">Прокачка</button></div>
+    <button class="btn-big" id="againBtn" type="button">ЩЕ РАЗ</button>
+    <button class="btn-small" id="homeBtn" type="button">Меню</button>
   </div>
 </div>
 <div class="overlay" id="leaveScreen" hidden>
   <div class="panel panel-look" role="dialog" aria-labelledby="leaveTitle">
-    <div class="result lose" id="leaveTitle" style="font-size:34px">Leave match?</div>
-    <p>You will lose this match.</p>
+    <div class="result lose" id="leaveTitle" style="font-size:34px">Вийти з бою?</div>
+    <p>Зібране золото й бойові квести зараховуються лише після завершення бою.</p>
     <div class="row-btns">
-      <button class="btn-small" id="leaveYes" type="button">Leave</button>
-      <button class="btn-big" id="leaveNo" type="button" style="font-size:22px;padding:11px 0 13px">STAY</button>
+      <button class="btn-small" id="leaveYes" type="button">Вийти</button>
+      <button class="btn-big" id="leaveNo" type="button" style="font-size:22px;padding:11px 0 13px">Залишитись</button>
     </div>
   </div>
 </div>
 
 <script>
 /*ENGINE*/
+/*CAMPAIGN*/
 </script>
 <script>
 (() => {
@@ -506,12 +650,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   const flagHTML = cc => `<span class="flag"><svg viewBox="0 0 30 20" preserveAspectRatio="none">${flagInner(cc)}</svg></span>`;
   const esc = s => s.replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 
-  // ---------- hidden difficulty: adapts to the player's results ----------
-  const STORE = 'blockbusters.v1';
-  let skill = 1;
-  try { const d = JSON.parse(localStorage.getItem(STORE) || '{}'); if (Number.isInteger(d.skill)) skill = Math.max(0, Math.min(4, d.skill)); } catch (e) { /* storage off */ }
-  const saveSkill = () => { try { localStorage.setItem(STORE, JSON.stringify({ skill })); } catch (e) { /* ok */ } };
-  const MIX = [['easy'], ['easy', 'medium'], ['medium'], ['medium', 'hard'], ['hard']];
+  /*RPG_UI*/
 
   // ---------- scene ----------
   function seeded(seed) { return () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
@@ -522,27 +661,32 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     if (mode === 'home') placeHome();
     else { sc.style.backgroundSize = ''; sc.style.backgroundPosition = ''; }
   }
-  // home art is 988x1592; keep the painted logo whole, anchor the picture to the bottom
+  // Preserve the full menu on short screens; extend its height on tall phones.
   function placeHome() {
     const sc = $('scene'), r = sc.getBoundingClientRect(), W = r.width, H = r.height;
     if (!W || !H) return;
-    const s = Math.min(Math.max(W / 988, H / 1592), (W - 8) / 830);
-    const ox = (W - 988 * s) / 2, oy = H - 1592 * s;
-    sc.style.backgroundSize = `${988 * s}px ${1592 * s}px`;
-    sc.style.backgroundPosition = `${ox}px ${oy}px`;
-    // the button sits where the painted one was (222..765 x 954..1107 in the art)
+    const s = Math.min(W / 941, H / 1672);
+    const sy = H / 1672, ox = (W - 941 * s) / 2, oy = 0;
+    sc.style.setProperty('--home-size', `${941 * s}px ${1672 * sy}px`);
+    sc.style.setProperty('--home-position', `${ox}px ${oy}px`);
+    const logo = $('homeLogo');
+    logo.style.left = r.left + ox + 80 * s + 'px';
+    logo.style.top = r.top + oy + 540 * sy + 'px';
+    logo.style.setProperty('--lw', 828 * s + 'px');
+    logo.style.setProperty('--lh', 340 * sy + 'px');
+    // Button and logo share the backdrop's design coordinates.
     const b = $('playBtn');
-    b.style.left = r.left + ox + 222 * s + 'px';
-    b.style.top = r.top + oy + 954 * s + 'px';
-    b.style.setProperty('--pw', 544 * s + 'px');
-    b.style.setProperty('--ph', 154 * s + 'px');
+    b.style.left = r.left + ox + 145 * s + 'px';
+    b.style.top = r.top + oy + 978 * sy + 'px';
+    b.style.setProperty('--pw', 650 * s + 'px');
+    b.style.setProperty('--ph', 260 * sy + 'px');
   }
   // ---------- screens ----------
   let gen = 0; // bump to cancel running async flows
   let sceneMode = '';
   function show(id) {
-    for (const s of ['home', 'search', 'game']) $(s).hidden = s !== id;
-    const mode = id === 'home' ? 'home' : 'game';
+    for (const s of ['home', 'campaign', 'search', 'game']) $(s).hidden = s !== id;
+    const mode = id === 'home' || id === 'campaign' ? 'home' : 'game';
     if (mode !== sceneMode) buildScene(mode);
     else if (mode === 'home') placeHome();
   }
@@ -557,19 +701,25 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     cellEls.push(c);
   }
 
+  let busy = true;
+  function setBusy(value) {
+    busy = value;
+    trayEl.classList.toggle('locked', value || !!(S && S.turn === 1));
+    trayEl.setAttribute('aria-busy', String(value));
+  }
   let geo = { inner: 320, gap: 4, cs: 36 };
   function layout() {
     if ($('game').hidden) return;
     const w = wrapEl.clientWidth, h = wrapEl.clientHeight;
-    // the painted frame is 836x880 with the 8x8 grass area at (45,53), 753x768
-    const inner = Math.max(200, Math.floor(Math.min(w - 10, (h - 30) * .97, 470)));
+    // Inner stone square occupies 72% of the generated frame.
+    const inner = Math.max(120, Math.floor(Math.min((w - 8) * .72, (h - 8) * .72, 420)));
     const gap = 2;
     const cs = (inner - gap * (N - 1)) / N;
     geo = { inner, gap, cs };
     stackEl.style.width = stackEl.style.height = inner + 'px';
-    const sx = inner / 753, sy = inner / 768, art = $('boardArt');
-    art.style.width = 836 * sx + 'px'; art.style.height = 880 * sy + 'px';
-    art.style.left = -45 * sx + 'px'; art.style.top = -53 * sy + 'px';
+    const art = $('boardArt'), outer = inner / .72;
+    art.style.width = art.style.height = outer + 'px';
+    art.style.left = art.style.top = -outer * .14 + 'px';
     $('frame').style.width = $('frame').style.height = inner + 'px';
     $('game').style.setProperty('--cs', cs + 'px');
     $('game').style.setProperty('--gap', gap + 'px');
@@ -583,6 +733,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   function renderBoard(b, deco = {}) {
     for (let i = 0; i < N * N; i++) {
       let cls = 'cell ' + blkClass(b[i]);
+      if (!b[i] && S && S.coins[i] && !(deco.pv && deco.pv.has(i))) cls += ' coin';
       if (deco.pv && deco.pv.has(i)) cls = 'cell ' + deco.pv.get(i) + ' ghosty';
       if (deco.hl && deco.hl.has(i)) {
         const base = deco.pv && deco.pv.has(i) ? deco.pv.get(i) : blkClass(b[i]);
@@ -614,7 +765,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   const pieceSize = (p, cs, gap) => [p.w * cs + (p.w - 1) * gap, p.h * cs + (p.h - 1) * gap];
 
   // ---------- state ----------
-  let S = null, opp = null, busy = true, drag = null, shownTurn = null, shownHp = [100, 100], lastOppCells = null;
+  let S = null, opp = null, drag = null, shownTurn = null, shownHp = [100, 100], lastOppCells = null;
   const timer = { left: 20000, running: false, last: performance.now() };
 
   function renderTray(animate) {
@@ -640,6 +791,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     });
   }
   function renderTurnbar() {
+    updateBattleMeta();
     const pips = $('pips');
     const total = Math.max(S.actionsLeft, BD.CONFIG.baseActions);
     let h = '';
@@ -652,8 +804,8 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
 
   // ---------- HP ----------
   const hpEl = side => $('hp' + side);
-  const MAXHP = BD.CONFIG.hp;
   function setHp(side, value, instant) {
+    const MAXHP = S.maxHp[side];
     const el = hpEl(side), k = Math.max(0, value) / MAXHP;
     el.classList.toggle('mid', k <= .5 && k > .25);
     el.classList.toggle('low', k <= .25);
@@ -670,6 +822,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     requestAnimationFrame(tick);
   }
   function setPreview(side, dmg) {
+    const MAXHP = S.maxHp[side];
     const el = hpEl(side), pv = el.querySelector('.pv');
     if (!dmg) { pv.classList.remove('on'); pv.style.width = '0'; return; }
     const hp = shownHp[side], d = Math.min(dmg, hp);
@@ -787,6 +940,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   async function showResult(res, myGen) {
     animating = true;
     const placed = new Set(res.placed);
+    if (res.gold && res.player === 0) { const [x, y] = center(stackEl); floatText('tag', '+' + Math.round(res.gold * battleContext.loot) + ' 🪙', x, y); }
     placeSfx(res.player === 1 ? .8 : 1);
     renderTurnbar();
     if (!res.n) {
@@ -810,7 +964,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     const { firstHit, done } = flyBlocks(cells, res.before, victim);
     renderBoard(S.board);
     if (res.mult > 1) { const [x, y] = center(stackEl); floatText('tag', 'x' + res.mult, x, y - 20); sfx('x2'); }
-    if (res.bonus) { banner('COMBO! +1', 'gold small', 1000); sfx('combo'); }
+    if (res.bonus) { banner('КОМБО! +1', 'gold small', 1000); sfx('combo'); }
     await firstHit;
     if (myGen !== gen) return;
     bump($('side' + victim), 'hit');
@@ -818,7 +972,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     bump(hpEl(victim), 'thump');
     setHp(victim, res.hpAfter);
     const [hx, hy] = center(hpEl(victim).querySelector('.track'));
-    floatText('dmg', '-' + res.points, hx, hy + 26);
+    floatText('dmg', '-' + res.damage, hx, hy + 26);
     sparks(hx, hy, 12);
     await done;
     if (myGen !== gen) return;
@@ -830,47 +984,47 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   async function step(myGen) {
     if (myGen !== gen) return;
     renderTurnbar();
-    if (S.over) { timer.running = false; busy = true; renderTray(false); await sleep(500); endMatch(myGen); return; }
+    if (S.over) { timer.running = false; setBusy(true); renderTray(false); await sleep(500); endMatch(myGen); return; }
     if (S.turn !== shownTurn) {
       if (shownTurn === 0) sfx('turnend');
       turnId++;
       setCountdown(null);
-      busy = true;
+      setBusy(true);
       timer.running = false;
       shownTurn = S.turn;
       renderTray(true);
       renderTurnbar();
       clockNum.textContent = BD.CONFIG.turnSeconds;
-      if (S.round === BD.CONFIG.rounds && S.turn === S.first) { await banner('LAST ROUND', 'gold small', 1000); if (myGen !== gen) return; }
+      if (S.round === BD.CONFIG.rounds && S.turn === S.first) { await banner('ОСТАННІЙ РАУНД', 'gold small', 1000); if (myGen !== gen) return; }
       sfx(S.turn === 0 ? 'yourturn' : 'oppturn');
-      await banner(S.turn === 0 ? 'YOUR TURN' : "OPPONENT'S TURN", S.turn === 0 ? 'you' : 'opp');
+      await banner(S.turn === 0 ? 'ТВІЙ ХІД' : 'ХІД ВОРОГА', S.turn === 0 ? 'you' : 'opp');
       if (myGen !== gen) return;
       timer.left = BD.CONFIG.turnSeconds * 1000;
       timer.running = true;
     }
     if (!BD.handFits(S)) {
-      busy = true;
+      setBusy(true);
       bump(trayEl, 'shake');
       sfx('nospace');
-      await banner('NO SPACE!', 'small', 1100);
+      await banner('НЕМАЄ МІСЦЯ!', 'small', 1100);
       if (myGen !== gen) return;
       BD.burn(S);
       renderTray(true);
       return step(myGen);
     }
-    if (S.turn === 1) { busy = true; trayEl.classList.add('locked'); return botAct(myGen); }
-    busy = false;
+    if (S.turn === 1) { setBusy(true); trayEl.classList.add('locked'); return botAct(myGen); }
+    setBusy(false);
     trayEl.classList.remove('locked');
   }
 
   async function onTimeout() {
     const myGen = gen;
-    busy = true;
+    setBusy(true);
     timer.running = false;
     if (drag) cancelDrag();
     setPreview(1, 0);
     sfx('timeup');
-    await banner("TIME'S UP!", 'small', 1100);
+    await banner('ЧАС ВИЙШОВ!', 'small', 1100);
     if (myGen !== gen) return;
     BD.timeout(S);
     step(myGen);
@@ -911,7 +1065,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     if (myGen !== gen) return;
     await sleep(think * .45);
     if (myGen !== gen) return;
-    const m = BD.chooseMove(S, pick(MIX[skill]));
+    const m = BD.chooseMove(S, opp.ai);
     if (!m) { step(myGen); return; }
     const piece = S.hands[1][m.slot];
     // reach for the piece in the tray
@@ -938,7 +1092,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
       const pv = new Map();
       res.placed.forEach((idx, i) => pv.set(idx, pieceCellClass(piece, i)));
       renderBoard(S.board, { pv, hl: new Set(res.cleared), hlColor: piece.color });
-      setPreview(0, res.points);
+      setPreview(0, BD.damage(S, 1, res.points));
     };
     // sometimes hesitate over another spot first, like a person would
     if (Math.random() < .38) {
@@ -1015,7 +1169,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     const pv = new Map();
     res.placed.forEach((idx, i) => pv.set(idx, pieceCellClass(d.p, i)));
     renderBoard(S.board, { pv, hl: new Set(res.cleared), hlColor: d.p.color, mark: lastOppCells });
-    setPreview(1, res.points);
+    setPreview(1, BD.damage(S, 0, res.points));
   }
   function cancelDrag() {
     const d = drag;
@@ -1031,7 +1185,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     const d = drag;
     if (!d.pos) { sfx('invalid'); cancelDrag(); return; }
     drag = null;
-    busy = true;
+    setBusy(true);
     d.ghostEl.remove();
     setPreview(1, 0);
     const myGen = gen;
@@ -1043,94 +1197,17 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     step(myGen);
   }
 
-  // ---------- matchmaking ----------
-  function makeOpponent() {
-    const cc = pick(Object.keys(COUNTRIES));
-    const name = Math.random() < .3 ? 'Guest' + Math.floor(10000 + Math.random() * 89999) : pick(COUNTRIES[cc]);
-    return { cc, name, avatar: pick(AVATARS) };
-  }
-  function playerCountry() {
-    const langs = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || '']).filter(Boolean);
-    for (const l of langs) { const m = /^[a-z]{2,3}-([a-z]{2})\b/i.exec(l); if (m && COUNTRIES[m[1].toUpperCase()]) return m[1].toUpperCase(); }
-    const byLang = { uk: 'UA', pl: 'PL', de: 'DE', fr: 'FR', it: 'IT', es: 'ES', pt: 'PT', ja: 'JP', zh: 'CN', tr: 'TR', sv: 'SE', nl: 'NL', cs: 'CZ', ro: 'RO', el: 'GR', vi: 'VN', id: 'ID', hi: 'IN' };
-    for (const l of langs) { const c = byLang[l.slice(0, 2).toLowerCase()]; if (c) return c; }
-    return 'UA';
-  }
-  const MY_CC = playerCountry();
   const cardHTML = (img, label, extra = '', after = '', side = 'you') => `<div class="card ${extra}"><div class="frame-ava ${side}"><img src="${img}" alt=""></div><div class="nm">${label}</div>${after}</div>`;
 
-  async function startSearch() {
-    const myGen = ++gen;
-    $('endScreen').hidden = true;
-    show('search');
-    const ITEM = 92, COUNT = 72;
-    let prev = '';
-    const seq = Array.from({ length: COUNT }, () => { let a; do a = pick(AVATARS); while (a === prev && AVATARS.length > 1); prev = a; return a; });
-    $('vs').innerHTML = cardHTML(PLAYER_AVATAR, flagHTML(MY_CC) + '<b>You</b>') + '<div class="vs-word">VS</div>' +
-      `<div class="card right"><div class="frame-ava opp roller" id="roller"><div class="win"><div class="reel fast" id="reel">${seq.map(a => `<img src="${a}" alt="">`).join('')}</div></div></div><div class="nm unknown" id="oppNm"><span class="flag blank"></span><b>???</b></div></div>`;
-    $('searchText').innerHTML = 'Searching for opponent<span class="dots"></span>';
-    $('cancelBtn').style.visibility = 'visible';
-    startSearchLoop();
-    const reel = $('reel');
-    const v = 1.15; // px per ms while spinning
-    let off = 0, passed = 0, t0 = performance.now(), last = t0;
-    const until = t0 + rnd(2200, 3400);
-    const draw = () => {
-      reel.style.transform = `translate3d(0, ${-off}px, 0)`;
-      const idx = Math.floor(off / ITEM + .5);
-      if (idx > passed) { passed = idx; sfx('tap', { vol: .4, rate: .9 + Math.random() * .2 }); }
-    };
-    // constant spin
-    await new Promise(res => {
-      const tick = now => {
-        if (myGen !== gen) return res();
-        off += v * Math.min(40, now - last); last = now;
-        draw();
-        if (now < until) requestAnimationFrame(tick); else res();
-      };
-      requestAnimationFrame(tick);
-    });
-    if (myGen !== gen) return;
-    // decelerate onto the opponent: same starting speed, cubic ease-out
-    opp = makeOpponent();
-    const target = Math.ceil(off / ITEM) + 6;
-    reel.children[target].src = opp.avatar;
-    const start = off, dist = target * ITEM - start, dur = 3 * dist / v;
-    await new Promise(res => {
-      const t1 = performance.now();
-      const tick = now => {
-        if (myGen !== gen) return res();
-        const k = Math.min(1, (now - t1) / dur);
-        off = start + dist * (1 - Math.pow(1 - k, 3));
-        if (k > .55) reel.classList.remove('fast');
-        draw();
-        if (k < 1) requestAnimationFrame(tick); else res();
-      };
-      requestAnimationFrame(tick);
-    });
-    if (myGen !== gen) return;
-    $('roller').classList.add('landed');
-    stopSearchLoop(.5);
-    sfx('land'); sfx('found');
-    $('oppNm').classList.remove('unknown');
-    $('oppNm').innerHTML = flagHTML(opp.cc) + `<b>${esc(opp.name)}</b>`;
-    $('cancelBtn').style.visibility = 'hidden';
-    $('searchText').textContent = 'Opponent found!';
-    await sleep(1700);
-    if (myGen !== gen) return;
-    startMatch(myGen);
-  }
-
   function startMatch(myGen) {
-    S = BD.newGame((Math.random() * 2 ** 31) | 0);
-    shownTurn = null; lastOppCells = null; drag = null; busy = true; animating = false;
-    $('ava0').src = PLAYER_AVATAR;
+    shownTurn = null; lastOppCells = null; drag = null; setBusy(true); animating = false;
+    $('ava0').src = HERO_AVATAR;
     $('ava1').src = opp.avatar;
     $('oppName').textContent = opp.name;
-    $('flag0').innerHTML = flagHTML(MY_CC);
-    $('flag1').innerHTML = flagHTML(opp.cc);
-    shownHp = [BD.CONFIG.hp, BD.CONFIG.hp];
-    setHp(0, BD.CONFIG.hp, true); setHp(1, BD.CONFIG.hp, true);
+    $('flag0').textContent = `⚔ ${percent(S.players[0].attack)}%`;
+    $('flag1').textContent = `${CAMP.RACES[opp.race].name} · 🛡 ${percent(opp.armor)}%`;
+    shownHp = S.maxHp.slice();
+    setHp(0, S.hp[0], true); setHp(1, S.hp[1], true);
     setPreview(0, 0); setPreview(1, 0);
     clockBar.style.strokeDashoffset = 0;
     show('game');
@@ -1146,17 +1223,17 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     setCountdown(null);
     finger.classList.remove('on');
     const w = BD.winner(S);
-    skill = Math.max(0, Math.min(4, skill + (w === 0 ? 1 : w === 1 ? -1 : 0)));
-    saveSkill();
+    const reward = finishEncounter(w);
     sfx(w === 0 ? 'win' : w === 1 ? 'lose' : 'draw');
     const t = $('resultTitle');
-    t.textContent = w === 0 ? 'VICTORY!' : w === 1 ? 'DEFEAT' : 'DRAW';
+    t.textContent = w === 0 ? 'ПЕРЕМОГА!' : w === 1 ? 'ПОРАЗКА' : 'НІЧИЯ';
     t.className = 'result ' + (w === 0 ? 'win' : w === 1 ? 'lose' : '');
     const hpLine = v => `<div class="hpleft">${v} HP</div>`;
     $('duo').innerHTML =
-      cardHTML(PLAYER_AVATAR, flagHTML(MY_CC) + '<b>You</b>', w === 1 ? 'loser' : '', hpLine(S.hp[0])) +
+      cardHTML(HERO_AVATAR, '<b>Герой</b>', w === 1 ? 'loser' : '', hpLine(S.hp[0])) +
       '<div class="vs-word">VS</div>' +
-      cardHTML(opp.avatar, flagHTML(opp.cc) + `<b>${esc(opp.name)}</b>`, w === 0 ? 'loser' : '', hpLine(S.hp[1]), 'opp');
+      cardHTML(opp.avatar, `<b>${esc(opp.name)}</b>`, w === 0 ? 'loser' : '', hpLine(S.hp[1]), 'opp');
+    if (reward) $('rewardSummary').innerHTML = `<strong>+${reward.total} 🪙</strong><small>Поле: ${reward.field} · Перемога: ${reward.victory}</small><small>${reward.first ? opp.id === 11 ? 'Вежу підкорено! Глава завершена.' : 'Новий супротивник відкритий!' : w === 0 ? 'Повторна перемога — менша нагорода.' : 'Зібране золото збережено. Спробуй ще раз!'}</small><small>${readyCount() ? `Готові квести: ${readyCount()}` : ''}</small>`;
     $('endScreen').hidden = false;
   }
 
@@ -1170,11 +1247,12 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     fx.innerHTML = '';
     $('endScreen').hidden = true;
     $('leaveScreen').hidden = true;
-    S = null;
+    S = null; battleContext = null;
+    profile = readProfile(); renderHomeProfile();
     show('home');
   }
 
-  $('playBtn').addEventListener('click', () => { unlockAudio(); sfx('play'); startSearch(); });
+  $('playBtn').addEventListener('click', () => { unlockAudio(); sfx('play'); openCampaign('map'); });
   $('cancelBtn').addEventListener('click', () => { sfx('back'); goHome(); });
   $('soundBtn').addEventListener('click', () => {
     unlockAudio();
@@ -1186,11 +1264,11 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   });
   renderSoundBtn();
   new ResizeObserver(() => { if (sceneMode === 'home') placeHome(); }).observe($('scene'));
-  $('againBtn').addEventListener('click', () => { sfx('play'); startSearch(); });
+  $('againBtn').addEventListener('click', () => { sfx('play'); beginEncounter(selectedNode); });
   $('homeBtn').addEventListener('click', () => { sfx('back'); goHome(); });
   $('leaveBtn').addEventListener('click', () => { sfx('open'); if (drag) cancelDrag(); $('leaveScreen').hidden = false; });
   $('leaveNo').addEventListener('click', () => { sfx('back'); $('leaveScreen').hidden = true; });
-  $('leaveYes').addEventListener('click', () => { sfx('back'); skill = Math.max(0, skill - 1); saveSkill(); goHome(); });
+  $('leaveYes').addEventListener('click', () => { sfx('back'); goHome(); openCampaign('map'); });
   $('app').addEventListener('contextmenu', e => e.preventDefault());
 
   let resizeT = 0;
@@ -1200,14 +1278,11 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   // test hook for automated play-throughs
   window.__bb = { state: () => S, geo: () => geo, busy: () => busy, sfx: () => Object.keys(buffers).length, audio: () => actx && actx.state, cd: () => cdMode, search: () => !!searchLoop, left: () => timer.left };
 
-  window.claude?.hot?.snapshot?.(() => ({ skill }));
-  function boot(data) {
-    if (data && Number.isInteger(data.skill)) skill = data.skill;
-    show('home');
+  function boot() {
+    renderHomeProfile(); show('home');
     requestAnimationFrame(timerFrame);
-    // retry placing the PLAY sprite once the viewport settles
     setTimeout(() => { if (sceneMode === 'home') placeHome(); }, 300);
   }
-  window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
+  boot();
 })();
 </script>

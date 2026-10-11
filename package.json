@@ -1,13 +1,15 @@
 {
-  "name": "blockbusters",
+  "name": "block-lords",
   "version": "0.6.0",
   "private": true,
-  "description": "Blockbusters — PvP-дуель у стилі Match Masters з механікою Block Blast",
+  "description": "Block Lords — RPG з магічними блоками, кампанією та прокачкою",
   "scripts": {
     "build": "node build.js",
-    "test": "node tools/test.js",
+    "test": "node tools/test.js && node tools/campaign_test.js",
     "sim": "node tools/sim.js 200",
     "sim:ko": "node tools/ko_sim.js"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  }
 }

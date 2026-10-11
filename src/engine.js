@@ -5,7 +5,7 @@ const BD = (() => {
     size: 8,
     rounds: 10,
     baseActions: 3,
-    maxBonusActions: 2,   // максимум 4 дії за хід
+    maxBonusActions: 2,   // максимум 5 дій за хід
     lineBase: 10,         // очки = 10 * n(n+1)/2
     bombPerBlock: 5,
     maxMultiplier: 4,
@@ -174,11 +174,18 @@ const BD = (() => {
   }
 
   // ---------- матч ----------
-  function newGame(seed, first) {
+  function newGame(seed, first, options = {}) {
+    const players = [0, 1].map(i => {
+      const p = (options.players || [])[i] || {};
+      return { hp: Number.isFinite(p.hp) ? Math.max(1, Math.round(p.hp)) : CONFIG.hp,
+        attack: Number.isFinite(p.attack) ? Math.max(.1, p.attack) : 1,
+        armor: Number.isFinite(p.armor) ? Math.max(0, Math.min(.6, p.armor)) : 0 };
+    });
     const S = {
       seed: seed | 0, board: new Array(N * N).fill(0), hands: [[], []], scores: [0, 0],
       round: 1, first: 0, turn: 0, actionsLeft: CONFIG.baseActions, bonusUsed: 0, over: false,
-      hp: [CONFIG.hp, CONFIG.hp], ko: null,
+      hp: players.map(p => p.hp), maxHp: players.map(p => p.hp), players, ko: null,
+      coins: new Array(N * N).fill(0), gold: [0, 0], collected: [0, 0],
       stats: { timeouts: [0, 0], burns: [0, 0], lines: [0, 0], combos: [0, 0], bombs: [0, 0], mults: [0, 0], actions: [0, 0], specialsDealt: 0 },
     };
     S.first = first === 0 || first === 1 ? first : (rand(S) < 0.5 ? 0 : 1);
@@ -192,6 +199,12 @@ const BD = (() => {
     } while (hasFullLine(S.board) && tries < 50);
     S.hands[0] = dealHand(S);
     S.hands[1] = dealHand(S);
+    const free = S.board.map((v, i) => v ? -1 : i).filter(i => i >= 0);
+    const coinCount = Math.max(0, Math.min(free.length, Math.floor(options.coinCount || 0)));
+    for (let i = 0; i < coinCount; i++) {
+      const j = Math.floor(rand(S) * free.length), cell = free.splice(j, 1)[0];
+      S.coins[cell] = 3;
+    }
     return S;
   }
   function hasFullLine(b) {
@@ -238,17 +251,29 @@ const BD = (() => {
   function winner(S) {
     if (!S.over) return null;
     if (S.ko !== null) return 1 - S.ko;
-    return S.hp[0] > S.hp[1] ? 0 : S.hp[1] > S.hp[0] ? 1 : -1;
+    const a = S.hp[0] / S.maxHp[0], b = S.hp[1] / S.maxHp[1];
+    return Math.abs(a - b) < 1e-9 ? -1 : a > b ? 0 : 1;
+  }
+  function damage(S, player, points) {
+    if (points <= 0) return 0;
+    return Math.max(1, Math.round(points * S.players[player].attack * (1 - S.players[1 - player].armor)));
   }
   function act(S, slot, r, c) {
+    if (S.over) throw new Error('match is over');
     const p = S.turn, piece = S.hands[p][slot];
     if (!piece || !canPlace(S.board, piece, r, c)) throw new Error('invalid move');
     const res = place(S.board, piece, r, c);
+    const coinCells = res.placed.filter(i => S.coins[i]);
+    const gold = coinCells.reduce((sum, i) => sum + S.coins[i], 0);
+    coinCells.forEach(i => { S.coins[i] = 0; });
+    S.gold[p] += gold;
+    S.collected[p] += coinCells.length;
     S.board = res.board;
     S.scores[p] += res.points;
     const target = 1 - p, hpBefore = S.hp[target];
-    S.hp[target] = Math.max(0, hpBefore - res.points);
-    const ko = res.points > 0 && S.hp[target] === 0;
+    const hit = damage(S, p, res.points);
+    S.hp[target] = Math.max(0, hpBefore - hit);
+    const ko = hit > 0 && S.hp[target] === 0;
     if (ko) { S.over = true; S.ko = target; }
     S.hands[p][slot] = null;
     S.actionsLeft--;
@@ -265,7 +290,7 @@ const BD = (() => {
     if (S.hands[p].every(x => !x)) { S.hands[p] = dealHand(S); refilled = true; }
     let ended = false;
     if (!S.over && S.actionsLeft <= 0) { endTurn(S); ended = true; }
-    return { ...res, bonus, refilled, ended, player: p, piece, slot, r, c, target, hpBefore, hpAfter: S.hp[target], ko };
+    return { ...res, damage: hit, gold, coinCells, bonus, refilled, ended, player: p, piece, slot, r, c, target, hpBefore, hpAfter: S.hp[target], ko };
   }
 
   // ---------- бот ----------
@@ -319,7 +344,7 @@ const BD = (() => {
       let best = null, bestV = -Infinity;
       for (const m of moves) {
         const res = place(board, pieceAt(m), m.r, m.c);
-        const v = res.points * 100 + quality(res.board);
+        const v = damage(S, me, res.points) * 100 + quality(res.board);
         if (v > bestV) { bestV = v; best = m; }
       }
       return best;
@@ -333,7 +358,7 @@ const BD = (() => {
     for (const m1 of moves) {
       const r1 = place(board, pieceAt(m1), m1.r, m1.c);
       const b1 = r1.combo && bonusLeft > 0;
-      const v1 = r1.points + (b1 ? BONUS_VALUE : 0);
+      const v1 = damage(S, me, r1.points) + (b1 ? BONUS_VALUE : 0);
       const rest = hand.map((p, i) => (i === m1.slot ? null : p));
       const restHas = rest.some(Boolean);
       if (depth === 2 && restHas) {
@@ -342,7 +367,7 @@ const BD = (() => {
         for (const m2 of m2s) {
           const r2 = place(r1.board, rest[m2.slot], m2.r, m2.c);
           const b2 = r2.combo && bonusLeft - (b1 ? 1 : 0) > 0;
-          cands.push({ m1, final: r2.board, own: v1 + r2.points + (b2 ? BONUS_VALUE : 0), endsTurn: !b1 && !b2 });
+          cands.push({ m1, final: r2.board, own: v1 + damage(S, me, r2.points) + (b2 ? BONUS_VALUE : 0), endsTurn: !b1 && !b2 });
         }
       } else {
         cands.push({ m1, final: r1.board, own: v1, endsTurn: S.actionsLeft === 1 && !b1 });
@@ -353,13 +378,13 @@ const BD = (() => {
     const top = cands.slice(0, 40);
     let best = null, bestV = -Infinity;
     for (const x of top) {
-      const danger = x.endsTurn ? threat(x.final, opp) : 0;
+      const danger = x.endsTurn ? damage(S, 1 - me, threat(x.final, opp)) : 0;
       const v = x.pre - 0.8 * danger;
       if (v > bestV) { bestV = v; best = x.m1; }
     }
     return best;
   }
 
-  return { CONFIG, N, FAMILIES, NEUTRAL, BOMB, X2, rand, makePiece, genPiece, canPlace, fits, placements, place, spOf, colorOf, newGame, handFits, burn, act, timeout, winner, endTurn, chooseMove, quality, threat };
+  return { CONFIG, N, FAMILIES, NEUTRAL, BOMB, X2, rand, makePiece, genPiece, canPlace, fits, placements, place, spOf, colorOf, newGame, handFits, burn, act, timeout, winner, endTurn, chooseMove, quality, threat, damage };
 })();
 if (typeof module !== 'undefined') module.exports = BD;

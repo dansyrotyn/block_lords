@@ -1,7 +1,7 @@
   // Visible testing controls; the sandbox has its own save key.
   let debugTab = 'battle', debugEnemy = selectedNode, debugDraft = {}, debugReturnFocus = null;
   let normalMemory = null, testMemory = null;
-  const debugField = (key,label,value,min=0,max=1e9,step=1,wide=false) => `<label class="${wide ? 'debug-wide' : ''}">${label}<input name="${key}" type="number" value="${value ?? ''}" min="${min}" max="${max}" step="${step}"></label>`;
+  const debugField = (key,label,value,min=0,max=1e9,step=1,wide=false) => `<label class="${wide ? 'debug-wide' : ''}">${label}<input name="${key}" type="number" value="${value ?? ''}" min="${min}" ${max == null ? '' : `max="${max}"`} step="${step}"></label>`;
   const debugSelect = (key,label,value,options,wide=false) => `<div class="debug-field ${wide ? 'debug-wide' : ''}"><label for="debug-field-${key}">${label}</label><select id="debug-field-${key}" name="${key}">${options.map(([id,name]) => `<option value="${id}" ${String(value) === String(id) ? 'selected' : ''}>${name}</option>`).join('')}</select></div>`;
   const debugButton = (action,label,style='',disabled=false) => `<button class="debug-button ${style}" type="button" data-debug-action="${action}" ${disabled ? 'disabled' : ''}>${label}</button>`;
   const debugValues = () => Object.fromEntries([...$('debugContent').querySelectorAll('[name]')].map(el => [el.name,el.type === 'checkbox' ? el.checked : el.value]));
@@ -69,7 +69,7 @@
         enemyHp:enemy.hp,enemyAttack:percent(enemy.attack),enemyArmor:percent(enemy.armor),reward:enemy.reward,ai:enemy.ai,
         coinCount:CAMP.CONFIG.coinCount,coinGold:CAMP.CONFIG.coinGold,first:'random',seed:'',pauseBot:debugPauseBot,...debugDraft};
       body.innerHTML = `<p class="debug-note">Start a sandbox battle against any monster. Hero and enemy overrides apply to this battle. Opening this menu pauses the timer and bot.</p><div class="debug-fields">${debugSelect('enemy','Opponent',debugEnemy,CAMP.ENEMIES.map(e=>[e.id,`${e.id+1}. ${e.name} · ${CAMP.RACES[e.race].name}`]),true)}
-        ${debugField('heroHp','Hero maximum HP',v.heroHp,1,100000)}${debugField('enemyHp','Enemy maximum HP',v.enemyHp,1,100000)}
+        ${debugField('heroHp','Hero starting HP',v.heroHp,1,null)}${debugField('enemyHp','Enemy starting HP',v.enemyHp,1,100000)}
         ${debugField('heroAttack','Hero attack (%)',v.heroAttack,10,10000,10)}${debugField('enemyAttack','Enemy attack (%)',v.enemyAttack,10,10000,10)}
         ${debugField('heroArmor','Hero armor (%)',v.heroArmor,0,60)}${debugField('enemyArmor','Enemy armor (%)',v.enemyArmor,0,60)}
         ${debugField('heroLoot','Gold multiplier (%)',v.heroLoot,0,10000,10)}${debugField('reward','First victory gold',v.reward,0,1e6)}
@@ -85,12 +85,12 @@
         <h3>Puzzle & Combat</h3>${fields('engine',DEV.ENGINE_FIELDS,BD.CONFIG)}
         <p>Fixed layout: ${BD.N} × ${BD.N} board, ${BD.CONFIG.handSize} pieces per hand, ${BD.CONFIG.colors} internal colors. One x2 block doubles damage; the cap limits stacked multipliers. Bombs affect a 3 × 3 area.</p>
         <h3>Hero & Gold</h3>${fields('rpg',DEV.RPG_FIELDS,CAMP.CONFIG)}
-        <h3>Upgrade Prices & Caps</h3>${Object.entries(CAMP.UPGRADES).map(([key,u])=>`<h3>${u.name}</h3><div class="debug-fields">${debugField('upgrade_'+key+'_base','Starting price',u.base,1,1e6)}${debugField('upgrade_'+key+'_growth','Price growth multiplier',u.growth,1,3,.01)}${debugField('upgrade_'+key+'_cap','Maximum level',u.cap,1,50)}</div>`).join('')}
+        <h3>Upgrade Prices</h3>${Object.entries(CAMP.UPGRADES).map(([key,u])=>`<h3>${u.name}</h3>${key === 'hp' ? '<p>Vitality has no level limit. Next price = starting price + price increase × current level.</p>' : ''}<div class="debug-fields">${debugField('upgrade_'+key+'_base','Starting price',u.base,1,1e6)}${key === 'hp' ? debugField('upgrade_'+key+'_step','Price increase per level',u.step,1,1e6) : debugField('upgrade_'+key+'_growth','Price growth multiplier',u.growth,1,3,.01)+debugField('upgrade_'+key+'_cap','Maximum level',u.cap,1,50)}</div>`).join('')}
         <h3>Quest & Achievement Targets</h3>${[...CAMP.QUESTS,...CAMP.ACHIEVEMENTS].map(q=>`<h3>${q.name}</h3><div class="debug-fields">${debugField('quest_'+q.id+'_target','Target',q.target,1,1e6)}${debugField('quest_'+q.id+'_reward','Gold reward',q.reward,0,1e6)}</div>`).join('')}
         <div class="debug-actions">${debugButton('balance-save','Apply balance','primary')}${debugButton('balance-reset','Reset balance')}</div>`;
     } else if (debugTab === 'progress') {
       body.innerHTML = `<p class="debug-note">These controls write only to the separate sandbox profile. Your normal campaign stays in its own save.</p><div class="debug-fields">${debugField('gold','Gold',profile.gold)}${Object.entries(CAMP.UPGRADES).map(([key,u])=>debugField('level_'+key,u.name+' level',profile.levels[key],0,u.cap)).join('')}</div>
-        <div class="debug-actions">${debugButton('progress-save','Apply progress','primary')}${debugButton('add-gold','+10,000 gold')}${debugButton('max-levels','Max upgrades')}</div>
+        <div class="debug-actions">${debugButton('progress-save','Apply progress','primary')}${debugButton('add-gold','+10,000 gold')}${debugButton('boss-build','Boss-ready build')}</div>
         <h3>Quest Counters</h3><div class="debug-fields">${CAMP.STAT_KEYS.map(key=>debugField('stat_'+key,({games:'Completed battles',actions:'Pieces placed',lines:'Lines cleared',coins:'Coins collected',upgrades:'Upgrades purchased',ratWins:'Ratfolk victories',wins:'Total victories',tower:'Tower conquered'})[key],profile.stats[key])).join('')}</div>
         <div class="debug-actions">${debugButton('ready-quests','Complete all quest targets')}</div>
         <h3>Defeated Enemies</h3><p>All enemies are playable in sandbox, even without victory markers.</p><div class="debug-checklist">${CAMP.ENEMIES.map(e=>`<label class="debug-check"><input type="checkbox" data-debug-cleared="${e.id}" ${profile.cleared.includes(e.id) ? 'checked' : ''}>${e.name}</label>`).join('')}</div>
@@ -104,7 +104,7 @@
       if (live) {
         body.innerHTML += `<div class="debug-fields">${debugField('round','Current round',S.round,1,BD.CONFIG.rounds)}${debugSelect('turn','Current turn',S.turn,[[0,'Hero'],[1,'Enemy']])}${debugField('actions','Actions remaining',S.actionsLeft,1,30)}${debugField('bonus','Combo bonuses used',S.bonusUsed,0,BD.CONFIG.maxBonusActions)}${debugField('seconds','Timer remaining (seconds)',Math.ceil(timer.left/1000),1,BD.CONFIG.turnSeconds)}${debugField('seed','Current RNG state',S.seed,-2147483648,2147483647)}${debugField('loot','Gold multiplier (%)',percent(battleContext.loot),0,10000)}${debugField('coinLimit','Coins allowed in settlement',battleContext.coinCount,0,1e6)}${debugField('coinValue','Gold per coin in settlement',battleContext.coinGold,1,1e6)}</div>
           <label class="debug-check"><input name="pauseBot" type="checkbox" ${debugPauseBot ? 'checked' : ''}>Pause bot turns</label>
-          ${[0,1].map(side=>`<h3>${side === 0 ? 'Hero' : opp.name}</h3><div class="debug-fields">${debugField('side'+side+'_maxHp','Maximum HP',S.maxHp[side],1,100000)}${debugField('side'+side+'_hp','Current HP',S.hp[side],1,S.maxHp[side])}${debugField('side'+side+'_attack','Attack (%)',percent(S.players[side].attack),10,10000)}${debugField('side'+side+'_armor','Armor (%)',percent(S.players[side].armor),0,60)}${debugField('side'+side+'_score','Damage points',S.scores[side])}${debugField('side'+side+'_gold','Collected raw gold',S.gold[side])}${debugField('side'+side+'_collected','Coins collected',S.collected[side])}${Object.keys(S.stats).filter(key=>Array.isArray(S.stats[key])).map(key=>debugField('side'+side+'_'+key,key.replace(/^./,ch=>ch.toUpperCase()),S.stats[key][side])).join('')}</div>`).join('')}
+          ${[0,1].map(side=>`<h3>${side === 0 ? 'Hero' : opp.name}</h3><div class="debug-fields">${debugField('side'+side+'_maxHp','Full health (HP)',S.maxHp[side],1,side === 0 ? null : 100000)}${debugField('side'+side+'_hp','Current HP',S.hp[side],1,S.maxHp[side])}${debugField('side'+side+'_attack','Attack (%)',percent(S.players[side].attack),10,10000)}${debugField('side'+side+'_armor','Armor (%)',percent(S.players[side].armor),0,60)}${debugField('side'+side+'_score','Damage points',S.scores[side])}${debugField('side'+side+'_gold','Collected raw gold',S.gold[side])}${debugField('side'+side+'_collected','Coins collected',S.collected[side])}${Object.keys(S.stats).filter(key=>Array.isArray(S.stats[key])).map(key=>debugField('side'+side+'_'+key,key.replace(/^./,ch=>ch.toUpperCase()),S.stats[key][side])).join('')}</div>`).join('')}
           <div class="debug-actions">${debugButton('live-save','Apply live values','primary')}${debugButton('skip-turn','Skip current turn')}${debugButton('heal','Heal both sides')}</div>
           <h3>Result & Rewards</h3><div class="debug-actions">${debugButton('win','Force victory','primary')}${debugButton('lose','Force defeat','danger')}${debugButton('draw','Force draw')}</div>
           <h3>Board Test Presets</h3><p>Presets replace the board and give the hero three single blocks. Finish the top row to test the effect.</p><div class="debug-actions">${debugButton('preset-empty','Empty board')}${debugButton('preset-line','Line clear')}${debugButton('preset-combo','Row + column combo')}${debugButton('preset-bomb','Bomb chain')}${debugButton('preset-x2','x2 multiplier')}${debugButton('coins','Refill coins')}</div>
@@ -150,7 +150,7 @@
       if (S && !S.over) { S.round = Math.min(S.round,BD.CONFIG.rounds); timer.left = Math.min(timer.left,BD.CONFIG.turnSeconds*1000); }
       refreshDebugBackground(); renderDebugMenu(); debugMessage(action === 'balance-reset' ? 'Default balance restored.' : 'Sandbox balance applied for this session.'); return;
     }
-    const progressActions = ['progress-save','add-gold','max-levels','ready-quests','clear-all','clear-none','profile-reset','import-profile'];
+    const progressActions = ['progress-save','add-gold','boss-build','ready-quests','clear-all','clear-none','profile-reset','import-profile'];
     if (progressActions.includes(action)) {
       if (action === 'import-profile') {
         const parsed = JSON.parse(values.profileJson), raw = parsed.profile || parsed;
@@ -160,13 +160,13 @@
         setTestMode(true);
         if (action === 'progress-save') {
           profile.gold = DEV.number(values.gold,0,1e9,profile.gold,1);
-          for (const [key,u] of Object.entries(CAMP.UPGRADES)) profile.levels[key] = DEV.number(values['level_'+key],0,u.cap,profile.levels[key],1);
+          for (const [key,u] of Object.entries(CAMP.UPGRADES)) profile.levels[key] = CAMP.level(key,DEV.number(values['level_'+key],0,u.cap,profile.levels[key],1));
           for (const key of CAMP.STAT_KEYS) profile.stats[key] = DEV.number(values['stat_'+key],0,1e9,profile.stats[key],1);
           profile.cleared = [...$('debugContent').querySelectorAll('[data-debug-cleared]:checked')].map(el=>+el.dataset.debugCleared);
           profile.claimed = [...$('debugContent').querySelectorAll('[data-debug-claimed]:checked')].map(el=>el.dataset.debugClaimed);
         }
         if (action === 'add-gold') profile.gold = Math.min(1e9,profile.gold+10000);
-        if (action === 'max-levels') for (const [key,u] of Object.entries(CAMP.UPGRADES)) profile.levels[key] = u.cap;
+        if (action === 'boss-build') for (const [key,value] of Object.entries(CAMP.BOSS_BUILD)) profile.levels[key] = Math.max(profile.levels[key],value);
         if (action === 'ready-quests') for (const q of [...CAMP.QUESTS,...CAMP.ACHIEVEMENTS]) profile.stats[q.stat] = Math.max(profile.stats[q.stat],q.target);
         if (action === 'clear-all') profile.cleared = CAMP.ENEMIES.map(e=>e.id);
         if (action === 'clear-none') profile.cleared = [];

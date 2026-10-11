@@ -84,12 +84,13 @@
     $('progressPortrait').src = HERO_AVATAR;
     if (activeWindow === 'upgrades') {
       $('progressTitle').textContent = 'Hero Upgrades';
-      body.innerHTML = `<p class="campaign-intro">Choose how to strengthen your hero.<br><small>Each upgrade has its own growing price.</small></p>${Object.entries(CAMP.UPGRADES).map(([key, u]) => {
-        const level = profile.levels[key], max = level >= u.cap, price = CAMP.cost(profile, key);
+      const bossHero = CAMP.player({levels:CAMP.BOSS_BUILD});
+      body.innerHTML = `<p class="campaign-intro">Choose how to strengthen your hero.<br><small>Health fully restores before each battle. Vitality has no level limit.</small></p><p class="campaign-intro"><small>Suggested Tower Lord build: ${bossHero.hp} HP · ${percent(bossHero.attack)}% attack.<br>Need more power? Replay defeated enemies and claim quest rewards.</small></p>${Object.entries(CAMP.UPGRADES).map(([key, u]) => {
+        const level = profile.levels[key], max = CAMP.maxed(profile,key), price = CAMP.cost(profile, key);
         const next = CAMP.player({...profile, levels:{...profile.levels,[key]:level+1}});
         const current = key === 'hp' ? `${p.hp} → ${next.hp} HP` : `${percent(p[key])}% → ${percent(next[key])}%`;
-        const detail = key === 'hp' ? `+${CAMP.CONFIG.hpPerLevel} maximum HP per level` : `+${percent(CAMP.CONFIG[key === 'attack' ? 'attackPerLevel' : 'lootPerLevel'])}% ${key === 'attack' ? 'damage' : 'battle gold'} per level`;
-        return `<article class="upgrade-card panel-look"><div class="upgrade-icon">${u.icon}</div><div><h2>${u.name}</h2><small>Level ${level}/${u.cap}</small><p>${max ? 'Maximum level' : current}</p><small>${detail}</small></div><button type="button" class="buy-btn" data-upgrade="${key}" ${max || profile.gold < price ? 'disabled' : ''}>${max ? 'MAX' : `${GOLD_ICON} ${price}`}<small>${max ? '' : profile.gold < price ? 'Not enough gold' : 'Upgrade'}</small></button></article>`;
+        const detail = key === 'hp' ? `+${CAMP.CONFIG.hpPerLevel} starting HP per level` : `+${percent(CAMP.CONFIG[key === 'attack' ? 'attackPerLevel' : 'lootPerLevel'])}% ${key === 'attack' ? 'damage' : 'battle gold'} per level`;
+        return `<article class="upgrade-card panel-look"><div class="upgrade-icon">${u.icon}</div><div><h2>${u.name}</h2><small>Level ${level}${u.cap == null ? ' · Unlimited' : '/'+u.cap}</small><p>${max ? 'Maximum level' : current}</p><small>${detail}</small></div><button type="button" class="buy-btn" data-upgrade="${key}" ${max || profile.gold < price || !Number.isFinite(price) ? 'disabled' : ''}>${max ? 'MAX' : `${GOLD_ICON} ${price}`}<small>${max ? '' : profile.gold < price ? 'Not enough gold' : 'Upgrade'}</small></button></article>`;
       }).join('')}`;
     } else {
       $('progressTitle').textContent = 'Quests & Achievements';

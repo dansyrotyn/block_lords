@@ -1,0 +1,281 @@
+{
+  "method": "Actual engine, seeded hands, alternating first player, default enemy AI. Full map, manual rewards modeled as claimed immediately; no timeouts. Bots are skill proxies, not predictions of human win rates.",
+  "seeds": {
+    "matchups": "1000 + i × 7919",
+    "campaigns": "8137 + run × 104729 + battle × 7919"
+  },
+  "boss": [
+    {
+      "levels": {
+        "attack": 0,
+        "hp": 0,
+        "loot": 0
+      },
+      "hp": 100,
+      "attack": 100,
+      "skill": "medium",
+      "games": 300,
+      "winPercent": 2,
+      "drawPercent": 0,
+      "koPercent": 99.3,
+      "averageFieldGold": 10.7
+    },
+    {
+      "levels": {
+        "attack": 0,
+        "hp": 0,
+        "loot": 0
+      },
+      "hp": 100,
+      "attack": 100,
+      "skill": "easy",
+      "games": 300,
+      "winPercent": 0.3,
+      "drawPercent": 0,
+      "koPercent": 100,
+      "averageFieldGold": 10.7
+    },
+    {
+      "levels": {
+        "attack": 4,
+        "hp": 6,
+        "loot": 0
+      },
+      "hp": 190,
+      "attack": 140,
+      "skill": "medium",
+      "games": 300,
+      "winPercent": 28,
+      "drawPercent": 0,
+      "koPercent": 95,
+      "averageFieldGold": 11.8
+    },
+    {
+      "levels": {
+        "attack": 4,
+        "hp": 6,
+        "loot": 0
+      },
+      "hp": 190,
+      "attack": 140,
+      "skill": "easy",
+      "games": 300,
+      "winPercent": 8.7,
+      "drawPercent": 0,
+      "koPercent": 94,
+      "averageFieldGold": 11.5
+    },
+    {
+      "levels": {
+        "attack": 6,
+        "hp": 8,
+        "loot": 0
+      },
+      "hp": 220,
+      "attack": 160,
+      "skill": "medium",
+      "games": 300,
+      "winPercent": 46,
+      "drawPercent": 0,
+      "koPercent": 95.7,
+      "averageFieldGold": 11.8
+    },
+    {
+      "levels": {
+        "attack": 6,
+        "hp": 8,
+        "loot": 0
+      },
+      "hp": 220,
+      "attack": 160,
+      "skill": "easy",
+      "games": 300,
+      "winPercent": 18.7,
+      "drawPercent": 0,
+      "koPercent": 89.3,
+      "averageFieldGold": 11.5
+    },
+    {
+      "levels": {
+        "attack": 8,
+        "hp": 12,
+        "loot": 0
+      },
+      "hp": 280,
+      "attack": 180,
+      "skill": "medium",
+      "games": 300,
+      "winPercent": 65.3,
+      "drawPercent": 0,
+      "koPercent": 92.3,
+      "averageFieldGold": 11.8
+    },
+    {
+      "levels": {
+        "attack": 8,
+        "hp": 12,
+        "loot": 0
+      },
+      "hp": 280,
+      "attack": 180,
+      "skill": "easy",
+      "games": 300,
+      "winPercent": 35.3,
+      "drawPercent": 0,
+      "koPercent": 68.7,
+      "averageFieldGold": 11.6
+    },
+    {
+      "levels": {
+        "attack": 8,
+        "hp": 15,
+        "loot": 0
+      },
+      "hp": 325,
+      "attack": 180,
+      "skill": "medium",
+      "games": 300,
+      "winPercent": 74.3,
+      "drawPercent": 0,
+      "koPercent": 82.3,
+      "averageFieldGold": 11.9
+    },
+    {
+      "levels": {
+        "attack": 8,
+        "hp": 15,
+        "loot": 0
+      },
+      "hp": 325,
+      "attack": 180,
+      "skill": "easy",
+      "games": 300,
+      "winPercent": 44.3,
+      "drawPercent": 0,
+      "koPercent": 52.3,
+      "averageFieldGold": 11.7
+    },
+    {
+      "levels": {
+        "attack": 10,
+        "hp": 15,
+        "loot": 0
+      },
+      "hp": 325,
+      "attack": 200,
+      "skill": "medium",
+      "games": 300,
+      "winPercent": 78.7,
+      "drawPercent": 0,
+      "koPercent": 88.7,
+      "averageFieldGold": 11.7
+    },
+    {
+      "levels": {
+        "attack": 10,
+        "hp": 15,
+        "loot": 0
+      },
+      "hp": 325,
+      "attack": 200,
+      "skill": "easy",
+      "games": 300,
+      "winPercent": 50.7,
+      "drawPercent": 0,
+      "koPercent": 56.3,
+      "averageFieldGold": 11.7
+    }
+  ],
+  "economy": {
+    "bossBuild": {
+      "attack": 8,
+      "hp": 12,
+      "loot": 0
+    },
+    "bossBuildCost": 1639,
+    "firstVictoryGoldBeforeBoss": 1265,
+    "starterQuestGold": 200,
+    "tenWinsGold": 100,
+    "initialGold": 60,
+    "budgetBeforeFieldCoins": 1625
+  },
+  "current": [
+    {
+      "skill": "medium",
+      "fortune": false,
+      "runs": 100,
+      "completed": 100,
+      "medianBattles": 16,
+      "p90Battles": 19,
+      "maxBattles": 24,
+      "averageReplays": 1,
+      "averageFirstBossHp": 330.6,
+      "averageFirstBossAttack": 170.4
+    },
+    {
+      "skill": "medium",
+      "fortune": true,
+      "runs": 100,
+      "completed": 100,
+      "medianBattles": 16,
+      "p90Battles": 19,
+      "maxBattles": 24,
+      "averageReplays": 0.9,
+      "averageFirstBossHp": 335.8,
+      "averageFirstBossAttack": 171.7
+    },
+    {
+      "skill": "easy",
+      "fortune": false,
+      "runs": 100,
+      "completed": 100,
+      "medianBattles": 23,
+      "p90Battles": 32,
+      "maxBattles": 46,
+      "averageReplays": 4.3,
+      "averageFirstBossHp": 337,
+      "averageFirstBossAttack": 174.8
+    },
+    {
+      "skill": "easy",
+      "fortune": true,
+      "runs": 100,
+      "completed": 100,
+      "medianBattles": 22,
+      "p90Battles": 32,
+      "maxBattles": 46,
+      "averageReplays": 4,
+      "averageFirstBossHp": 343.9,
+      "averageFirstBossAttack": 177.2
+    }
+  ],
+  "previous": {
+    "bossBuildCost": 4639,
+    "progression": [
+      {
+        "skill": "medium",
+        "fortune": false,
+        "runs": 100,
+        "completed": 100,
+        "medianBattles": 21,
+        "p90Battles": 28,
+        "maxBattles": 39,
+        "averageReplays": 3.2,
+        "averageFirstBossHp": 220,
+        "averageFirstBossAttack": 165.5
+      },
+      {
+        "skill": "easy",
+        "fortune": false,
+        "runs": 100,
+        "completed": 100,
+        "medianBattles": 46,
+        "p90Battles": 68,
+        "maxBattles": 91,
+        "averageReplays": 18,
+        "averageFirstBossHp": 228.7,
+        "averageFirstBossAttack": 171.6
+      }
+    ]
+  }
+}

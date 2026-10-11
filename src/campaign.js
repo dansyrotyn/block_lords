@@ -29,10 +29,17 @@ const CAMP = (() => {
   const PARENTS = [[], [0], [1], [2], [3], [4], [0], [6,3], [7], [5,8,4], [9], [10]];
   const ROUTES = PARENTS.flatMap((parents,to) => parents.map(from => ({from,to,shortcut: to-from > 1})));
   const UPGRADES = {
-    attack: { name: 'Attack', icon: '⚔', base: 50, growth: 1.32, cap: 20, detail: '+10% damage per level' },
-    hp: { name: 'Vitality', icon: '♥', base: 45, growth: 1.3, cap: 20, detail: '+15 maximum HP per level' },
+    attack: { name: 'Attack', icon: '⚔', base: 50, growth: 1.18, cap: 20, detail: '+10% damage per level' },
+    // null means no gameplay level cap. Linear prices keep further HP attainable.
+    hp: { name: 'Vitality', icon: '♥', base: 45, step: 5, cap: null, detail: '+15 starting HP per level · no level limit' },
     loot: { name: 'Fortune', icon: '✦', base: 75, growth: 1.4, cap: 10, detail: '+10% battle gold per level' },
   };
+  const BOSS_BUILD = { attack: 8, hp: 12, loot: 0 };
+  const maxed = (p, key) => UPGRADES[key]?.cap != null && p.levels[key] >= UPGRADES[key].cap;
+  function level(key, value) {
+    const n = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+    return UPGRADES[key].cap == null ? n : Math.min(UPGRADES[key].cap, n);
+  }
   const QUESTS = [
     { id: 'play', name: 'First Adventure', detail: 'Complete one battle', stat: 'games', target: 1, reward: 25 },
     { id: 'blocks', name: 'Rune Master', detail: 'Place 10 pieces', stat: 'actions', target: 10, reward: 30 },
@@ -55,7 +62,7 @@ const CAMP = (() => {
     const p = create();
     if (!raw || raw.version !== 1) return p;
     p.gold = amount(raw.gold);
-    for (const k of Object.keys(UPGRADES)) p.levels[k] = Math.min(UPGRADES[k].cap, amount(raw.levels?.[k]));
+    for (const k of Object.keys(UPGRADES)) p.levels[k] = level(k, raw.levels?.[k]);
     // Keep reachable victories on either branch; old linear saves remain valid.
     const cleared = new Set(Array.isArray(raw.cleared) ? raw.cleared : []);
     for (const e of ENEMIES) { if (cleared.has(e.id) && unlocked(p,e.id)) p.cleared.push(e.id); }
@@ -76,10 +83,13 @@ const CAMP = (() => {
     const ratio = (e.hp * e.attack / (1-e.armor)) / (hero.hp * hero.attack);
     return ratio >= 1.55 ? 'high' : ratio >= 1.15 ? 'medium' : 'normal';
   }
-  const cost = (p, key) => UPGRADES[key] ? Math.ceil(UPGRADES[key].base * UPGRADES[key].growth ** p.levels[key]) : Infinity;
+  function cost(p, key) {
+    const u = UPGRADES[key];
+    return !u ? Infinity : Math.ceil(u.step != null ? u.base + u.step * p.levels[key] : u.base * u.growth ** p.levels[key]);
+  }
   function buy(p, key) {
     const u = UPGRADES[key];
-    if (!u || p.levels[key] >= u.cap || p.gold < cost(p, key)) return false;
+    if (!u || maxed(p, key) || !Number.isFinite(cost(p, key)) || p.gold < cost(p, key)) return false;
     p.gold -= cost(p, key); p.levels[key]++; p.stats.upgrades++; return true;
   }
   function claim(p, id) {
@@ -107,6 +117,6 @@ const CAMP = (() => {
     const opened = ENEMIES.filter(e => unlocked(p,e.id) && !availableBefore.includes(e.id)).map(e => e.id);
     return { field, victory, total: field + victory, first, won, opened };
   }
-  return { KEY, CONFIG, STAT_KEYS, RACES, ENEMIES, PARENTS, ROUTES, recommended, danger, UPGRADES, QUESTS, ACHIEVEMENTS, create, restore, player, unlocked, cost, buy, claim, settle };
+  return { KEY, CONFIG, STAT_KEYS, RACES, ENEMIES, PARENTS, ROUTES, recommended, danger, UPGRADES, BOSS_BUILD, maxed, level, QUESTS, ACHIEVEMENTS, create, restore, player, unlocked, cost, buy, claim, settle };
 })();
 if (typeof module !== 'undefined') module.exports = CAMP;

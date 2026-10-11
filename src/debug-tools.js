@@ -6,7 +6,7 @@ const DEV = (() => {
   const number = (value, min, max, fallback, step = 0) => {
     const n = Number(value);
     if (value === '' || !Number.isFinite(n)) return fallback;
-    const bounded = Math.max(min, Math.min(max, n));
+    const bounded = Math.max(min, Math.min(max ?? Infinity, n));
     return step === 1 ? Math.round(bounded) : bounded;
   };
   const ENGINE_FIELDS = [
@@ -19,7 +19,7 @@ const DEV = (() => {
     ['fitTries','Hand generation attempts',1,100,1],
   ];
   const RPG_FIELDS = [
-    ['initialGold','New profile gold',0,1e9,1], ['heroHp','Base hero HP',1,100000,1],
+    ['initialGold','New profile gold',0,1e9,1], ['heroHp','Base hero HP',1,null,1],
     ['hpPerLevel','HP per upgrade',0,10000,1], ['heroAttack','Base hero attack multiplier',.1,100,.1],
     ['attackPerLevel','Attack multiplier per upgrade',0,10,.05], ['heroLoot','Base gold multiplier',0,100,.1],
     ['lootPerLevel','Gold multiplier per upgrade',0,10,.05], ['coinCount','Coins on board',0,64,1],
@@ -38,8 +38,13 @@ const DEV = (() => {
       for (const [key,,min,max,step] of fields) target[key] = number(values[group+'_'+key],min,max,target[key],step);
     for (const [key,u] of Object.entries(CAMP.UPGRADES)) {
       u.base = number(values['upgrade_'+key+'_base'],1,1e6,u.base,1);
-      u.growth = number(values['upgrade_'+key+'_growth'],1,3,u.growth);
-      u.cap = number(values['upgrade_'+key+'_cap'],1,50,u.cap,1);
+      if (key === 'hp') {
+        u.step = number(values['upgrade_'+key+'_step'],1,1e6,u.step,1);
+        u.cap = null;
+      } else {
+        u.growth = number(values['upgrade_'+key+'_growth'],1,3,u.growth);
+        u.cap = number(values['upgrade_'+key+'_cap'],1,50,u.cap,1);
+      }
     }
     for (const q of [...CAMP.QUESTS,...CAMP.ACHIEVEMENTS]) {
       q.target = number(values['quest_'+q.id+'_target'],1,1e6,q.target,1);
@@ -58,7 +63,7 @@ const DEV = (() => {
     const hero = CAMP.player(profile);
     const pct = (key, fallback, min=.1, max=100) => number(values[key],min*100,max*100,fallback*100)/100;
     return {
-      hero: { hp:number(values.heroHp,1,100000,hero.hp,1), attack:pct('heroAttack',hero.attack), armor:pct('heroArmor',0,0,.6), loot:pct('heroLoot',hero.loot,0) },
+      hero: { hp:number(values.heroHp,1,null,hero.hp,1), attack:pct('heroAttack',hero.attack), armor:pct('heroArmor',0,0,.6), loot:pct('heroLoot',hero.loot,0) },
       enemy: {...original, hp:number(values.enemyHp,1,100000,original.hp,1), attack:pct('enemyAttack',original.attack),
         armor:pct('enemyArmor',original.armor,0,.6), reward:number(values.reward,0,1e6,original.reward,1),
         ai:['easy','medium','hard'].includes(values.ai) ? values.ai : original.ai },
@@ -93,7 +98,7 @@ const DEV = (() => {
     S.seed = number(values.seed,-2147483648,2147483647,S.seed,1);
     for (let side=0;side<2;side++) {
       const key = 'side'+side+'_';
-      S.maxHp[side] = number(values[key+'maxHp'],1,100000,S.maxHp[side],1);
+      S.maxHp[side] = number(values[key+'maxHp'],1,side === 0 ? null : 100000,S.maxHp[side],1);
       S.hp[side] = number(values[key+'hp'],1,S.maxHp[side],Math.min(S.hp[side],S.maxHp[side]),1);
       S.players[side] = { hp:S.maxHp[side], attack:number(values[key+'attack'],10,10000,S.players[side].attack*100)/100,
         armor:number(values[key+'armor'],0,60,S.players[side].armor*100)/100 };

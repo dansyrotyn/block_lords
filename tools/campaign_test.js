@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const BD = require('../src/engine.js');
 const C = require('../src/campaign.js');
+const balance = require('./campaign_balance.js');
 let total = 0;
 const test = (name, fn) => { fn(); total++; console.log('ok -', name); };
 const battle = (id, node = 0, winner = 0) => ({ id, node, winner, loot: 1, gold: 6, collected: 2, actions: 12, lines: 4 });
@@ -100,5 +101,39 @@ test('старі лінійні збереження та нові перемо�
   assert.deepEqual(C.restore(branched).cleared,[0,1,6,7]);
   const damaged = C.create(); damaged.cleared = [0,8,11];
   assert.deepEqual(C.restore(damaged).cleared,[0]);
+});
+test('Vitality купується після старої стелі й зберігає високі рівні без обрізання', () => {
+  const p = C.create(); p.gold = 100000; p.levels.hp = 20;
+  assert.equal(C.maxed(p,'hp'),false); assert.equal(C.buy(p,'hp'),true);
+  assert.equal(C.player(p).hp,415);
+  p.levels.hp = 100;
+  const saved = C.restore(JSON.parse(JSON.stringify(p)));
+  assert.equal(saved.levels.hp,100); assert.equal(C.buy(saved,'hp'),true);
+  assert.equal(C.player(saved).hp,1615);
+  assert.ok(C.cost(saved,'hp') > C.cost(p,'hp'));
+});
+test('нагород повної карти й квестів вистачає на рекомендований білд фінального боса', () => {
+  const p = C.create(); assert.ok(C.buy(p,'hp'));
+  for (let node=0;node<11;node++) assert.ok(C.settle(p,battle('budget-'+node,node)));
+  for (const q of [...C.QUESTS,...C.ACHIEVEMENTS]) C.claim(p,q.id);
+  for (const [key,target] of Object.entries(C.BOSS_BUILD))
+    while (p.levels[key] < target) assert.ok(C.buy(p,key),`Can't afford ${key} level ${p.levels[key]+1}`);
+  assert.equal(C.player(p).hp,280); assert.equal(C.player(p).attack,1.8);
+  assert.equal(balance.totalCost(C.BOSS_BUILD),1639);
+  assert.ok(p.gold >= 0); assert.equal(C.unlocked(p,11),true);
+});
+test('бос складний без прокачки й прохідний підготовленим героєм на однакових seed', () => {
+  const base = balance.bossMatchup({attack:0,hp:0,loot:0},'medium',100);
+  const ready = balance.bossMatchup(C.BOSS_BUILD,'medium',100);
+  assert.ok(base.winPercent <= 10,JSON.stringify(base));
+  assert.ok(ready.winPercent >= 55 && ready.winPercent <= 85,JSON.stringify(ready));
+  assert.ok(ready.winPercent > base.winPercent+40);
+});
+test('з прокачкою й отриманням квестів кампанія проходиться без тривалого фарму', () => {
+  for (const skill of ['medium','easy']) for (let run=0;run<10;run++) {
+    const result = balance.campaign(run,skill,false);
+    assert.equal(result.complete,true,`${skill}/${run}`);
+    assert.ok(result.battles <= 40,`${skill}/${run}: ${result.battles} battles`);
+  }
 });
 console.log(`\n${total} перевірок RPG пройдено`);

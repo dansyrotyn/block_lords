@@ -2,14 +2,14 @@
   let storageWarning = '', storageUnavailable = false;
   function readProfile() {
     if (storageUnavailable) return profile || CAMP.create();
-    try { return CAMP.restore(JSON.parse(localStorage.getItem(CAMP.KEY) || 'null')); }
+    try { const raw = JSON.parse(localStorage.getItem(testMode ? DEV.KEY : CAMP.KEY) || 'null'); return testMode ? DEV.restoreProfile(raw) : CAMP.restore(raw); }
     catch (e) { storageUnavailable = true; storageWarning = 'Saving is unavailable. Progress will last for this session only.'; return typeof profile !== 'undefined' ? profile : CAMP.create(); }
   }
   let profile;
   profile = readProfile();
   let selectedNode = CAMP.recommended(profile), battleContext = null;
   function saveProfile() {
-    try { localStorage.setItem(CAMP.KEY, JSON.stringify(profile)); }
+    try { localStorage.setItem(testMode ? DEV.KEY : CAMP.KEY, JSON.stringify(profile)); }
     catch (e) { storageUnavailable = true; storageWarning = 'Saving is unavailable. Progress will last for this session only.'; }
     renderHomeProfile();
   }
@@ -54,7 +54,7 @@
     }
     const routes = `<path class="route-edge open" d="${route}"/>`;
     body.innerHTML = `<div class="world-map" role="group" aria-label="Adventure map: winding trail from the forest to the tower"><img class="world-terrain" src="__MAP__" alt="Ancient parchment map with forests, mountains, and a tower"><svg class="world-road" viewBox="0 0 1000 3500" aria-hidden="true">${routes}</svg><span class="region-label forest-label">Woodland Trail</span><span class="region-label peaks-label">Orc Highlands</span><span class="region-label tower-label">Demon Tower</span>${CAMP.ENEMIES.map(e => {
-      const open = CAMP.unlocked(profile,e.id), cleared = profile.cleared.includes(e.id), current = e.id === CAMP.recommended(profile) && !cleared;
+      const open = testMode || CAMP.unlocked(profile,e.id), cleared = profile.cleared.includes(e.id), current = e.id === CAMP.recommended(profile) && !cleared;
       const risk = CAMP.danger(profile,e.id), [x,y] = MAP_POINTS[e.id];
       const hint = CAMP.PARENTS[e.id].map(id => CAMP.ENEMIES[id].name).join(' or ');
       return `<button type="button" class="world-node ${x >= 50 ? 'label-left' : 'label-right'} ${cleared ? 'cleared' : open ? 'available' : 'locked'} ${current ? 'current' : ''} ${e.boss ? 'boss' : ''}" style="left:${x}%;top:${y}%" data-node="${e.id}" title="${open ? e.name : 'First defeat: '+hint}" aria-label="${e.name}${cleared ? ', defeated' : open ? ', battle available'+(risk === 'high' ? ', stronger than your hero' : '') : ', locked'}" ${open ? '' : 'disabled'}><span class="monster-medallion"><img src="${portrait(e.race)}" alt="" draggable="false"><span class="node-status">${cleared ? '✓' : open ? e.boss ? '♛' : e.id+1 : '🔒'}</span></span><span class="node-name">${e.name}</span><span class="node-caption">${cleared ? 'Defeated' : open ? risk === 'high' ? '⚠ Stronger' : risk === 'medium' ? 'Hard' : current ? 'FIGHT' : 'Available' : 'Locked'}</span></button>`;
@@ -86,8 +86,10 @@
       $('progressTitle').textContent = 'Hero Upgrades';
       body.innerHTML = `<p class="campaign-intro">Choose how to strengthen your hero.<br><small>Each upgrade has its own growing price.</small></p>${Object.entries(CAMP.UPGRADES).map(([key, u]) => {
         const level = profile.levels[key], max = level >= u.cap, price = CAMP.cost(profile, key);
-        const current = key === 'hp' ? `${p.hp} → ${p.hp + 15} HP` : `${percent(p[key === 'attack' ? 'attack' : 'loot'])}% → ${percent(p[key === 'attack' ? 'attack' : 'loot']) + 10}%`;
-        return `<article class="upgrade-card panel-look"><div class="upgrade-icon">${u.icon}</div><div><h2>${u.name}</h2><small>Level ${level}/${u.cap}</small><p>${max ? 'Maximum level' : current}</p><small>${u.detail}</small></div><button type="button" class="buy-btn" data-upgrade="${key}" ${max || profile.gold < price ? 'disabled' : ''}>${max ? 'MAX' : `${GOLD_ICON} ${price}`}<small>${max ? '' : profile.gold < price ? 'Not enough gold' : 'Upgrade'}</small></button></article>`;
+        const next = CAMP.player({...profile, levels:{...profile.levels,[key]:level+1}});
+        const current = key === 'hp' ? `${p.hp} → ${next.hp} HP` : `${percent(p[key])}% → ${percent(next[key])}%`;
+        const detail = key === 'hp' ? `+${CAMP.CONFIG.hpPerLevel} maximum HP per level` : `+${percent(CAMP.CONFIG[key === 'attack' ? 'attackPerLevel' : 'lootPerLevel'])}% ${key === 'attack' ? 'damage' : 'battle gold'} per level`;
+        return `<article class="upgrade-card panel-look"><div class="upgrade-icon">${u.icon}</div><div><h2>${u.name}</h2><small>Level ${level}/${u.cap}</small><p>${max ? 'Maximum level' : current}</p><small>${detail}</small></div><button type="button" class="buy-btn" data-upgrade="${key}" ${max || profile.gold < price ? 'disabled' : ''}>${max ? 'MAX' : `${GOLD_ICON} ${price}`}<small>${max ? '' : profile.gold < price ? 'Not enough gold' : 'Upgrade'}</small></button></article>`;
       }).join('')}`;
     } else {
       $('progressTitle').textContent = 'Quests & Achievements';
@@ -101,35 +103,35 @@
     if (hadFocus) $('progressClose').focus();
   }
   function openEnemyWindow(id) {
-    if (!CAMP.unlocked(profile,id)) return;
+    if (!testMode && !CAMP.unlocked(profile,id)) return;
     stopMapGlide(); selectedNode = id; returnFocus = document.activeElement; activeWindow = 'enemy';
     const e = CAMP.ENEMIES[id], race = CAMP.RACES[e.race], repeat = profile.cleared.includes(id), p = CAMP.player(profile);
     const risk = CAMP.danger(profile,id);
-    const reward = Math.round((repeat ? Math.max(10,Math.floor(e.reward*.3)) : e.reward)*p.loot);
-    $('encounter').innerHTML = `<span class="encounter-kicker">BATTLE ${id+1} / 12${e.boss ? ' · BOSS' : ''}</span><img class="enemy-portrait" src="${portrait(e.race)}" alt="${race.name}"><h2 id="enemyTitle">${e.name}</h2><small>${race.name}</small><div class="enemy-stats"><span>♥ ${e.hp} HP</span><span>⚔ ${percent(e.attack)}%</span><span>🛡 ${percent(e.armor)}%</span></div><p>${race.trait}</p>${repeat ? '<p class="victory-note">✓ You have already defeated this enemy</p>' : risk === 'high' ? '<p class="danger-note">⚠ Stronger than your hero. Take the risk, or upgrade and return later.</p>' : risk === 'medium' ? '<p class="danger-note">A tough fight. Check your upgrades before entering.</p>' : ''}<div class="fight-row"><span class="reward">${GOLD_ICON} ${reward}<small>${repeat ? 'Replay reward' : 'First victory'}</small></span><button class="btn-big fight-btn" data-start="${id}" type="button">FIGHT</button></div><small class="battle-rule">3 actions per turn · coins on the board</small>`;
+    const reward = Math.round((repeat ? Math.max(CAMP.CONFIG.minReplayGold,Math.floor(e.reward*CAMP.CONFIG.replayRate)) : e.reward)*p.loot);
+    $('encounter').innerHTML = `<span class="encounter-kicker">${testMode ? 'TEST · ' : ''}BATTLE ${id+1} / 12${e.boss ? ' · BOSS' : ''}</span><img class="enemy-portrait" src="${portrait(e.race)}" alt="${race.name}"><h2 id="enemyTitle">${e.name}</h2><small>${race.name}</small><div class="enemy-stats"><span>♥ ${e.hp} HP</span><span>⚔ ${percent(e.attack)}%</span><span>🛡 ${percent(e.armor)}%</span></div><p>${race.trait}</p>${repeat ? '<p class="victory-note">✓ You have already defeated this enemy</p>' : risk === 'high' ? '<p class="danger-note">⚠ Stronger than your hero. Take the risk, or upgrade and return later.</p>' : risk === 'medium' ? '<p class="danger-note">A tough fight. Check your upgrades before entering.</p>' : ''}<div class="fight-row"><span class="reward">${GOLD_ICON} ${reward}<small>${repeat ? 'Replay reward' : 'First victory'}</small></span><button class="btn-big fight-btn" data-start="${id}" type="button">FIGHT</button></div><small class="battle-rule">${BD.CONFIG.baseActions} actions per turn · coins on the board</small>`;
     $('progressWindow').hidden = true; $('encounterWindow').hidden = false;
     lockMap(true); $('encounterClose').focus();
   }
-  function beginEncounter(id) {
+  function beginEncounter(id, settings = null) {
     profile = readProfile();
-    if (!CAMP.unlocked(profile, id)) return;
+    if (!testMode && !CAMP.unlocked(profile, id)) return;
     closeCampaignWindow(); selectedNode = id;
-    const e = CAMP.ENEMIES[id], hero = CAMP.player(profile);
+    const e = settings?.enemy || CAMP.ENEMIES[id], hero = settings?.hero || CAMP.player(profile);
     opp = { ...e, avatar: portrait(e.race) };
-    battleContext = { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, node: id, loot: hero.loot, settled: false };
+    battleContext = { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, node: id, loot: hero.loot, settled: false, test:testMode, coinCount:settings?.coinCount ?? CAMP.CONFIG.coinCount, coinGold:settings?.coinGold ?? CAMP.CONFIG.coinGold };
     const myGen = ++gen;
     $('endScreen').hidden = true; $('leaveScreen').hidden = true;
-    S = BD.newGame((Math.random() * 2 ** 31) | 0, undefined, { players: [hero, e], coinCount: 8 });
+    S = BD.newGame(settings?.seed ?? ((Math.random() * 2 ** 31) | 0), settings?.first, { players: [hero, e], coinCount:battleContext.coinCount, coinGold:battleContext.coinGold });
     startMatch(myGen);
   }
   function updateBattleMeta() {
     if (!S) return;
-    $('battleMeta').innerHTML = `Round ${Math.min(S.round, 10)}/10 · ${GOLD_ICON} ${Math.round(S.gold[0] * battleContext.loot)} collected`;
+    $('battleMeta').innerHTML = `${battleContext.test ? 'TEST · ' : ''}Round ${Math.min(S.round, BD.CONFIG.rounds)}/${BD.CONFIG.rounds} · ${GOLD_ICON} ${Math.round(S.gold[0] * battleContext.loot)} collected${testMode && debugPauseBot && S.turn === 1 ? ' · Bot paused' : ''}`;
   }
   function finishEncounter(winner) {
     if (!battleContext || battleContext.settled) return null;
     profile = readProfile();
-    const result = CAMP.settle(profile, { ...battleContext, winner, gold: S.gold[0], collected: S.collected[0], actions: S.stats.actions[0], lines: S.stats.lines[0] });
+    const result = CAMP.settle(profile, { ...battleContext, winner, gold: S.gold[0], collected: S.collected[0], actions: S.stats.actions[0], lines: S.stats.lines[0] }, {test:battleContext.test,enemy:opp,coinCount:battleContext.coinCount,coinGold:battleContext.coinGold});
     battleContext.settled = true; saveProfile(); return result;
   }
   // Drag-to-scroll for both the map and window contents. Touch and mouse share one path.
@@ -142,6 +144,7 @@
     element.addEventListener('dragstart',e => e.preventDefault());
     element.addEventListener('pointerdown',e => {
       if (!enabled() || !e.isPrimary || e.button !== 0) return;
+      if (e.target.closest('input,select,textarea,summary')) return;
       stop();
       pan = {id:e.pointerId,startY:e.clientY,lastY:e.clientY,startScroll:element.scrollTop,lastTime:performance.now(),velocity:0,moved:false};
     });

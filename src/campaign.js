@@ -2,6 +2,8 @@
 /* Block Lords: fixed encounters and persistent RPG progression. No browser dependency. */
 const CAMP = (() => {
   const KEY = 'block-lords.campaign.v1';
+  const CONFIG = { initialGold: 60, heroHp: 100, hpPerLevel: 15, heroAttack: 1, attackPerLevel: .1,
+    heroLoot: 1, lootPerLevel: .1, coinCount: 8, coinGold: 3, replayRate: .3, minReplayGold: 10 };
   const RACES = {
     rat: { name: 'Ratfolk', icon: '🐀', color: '#AB88CB', trait: 'Low health and attack. A good place to start your adventure.' },
     human: { name: 'Bandit', icon: '🗡', color: '#74A4D7', trait: 'Armor absorbs part of every hit.' },
@@ -47,7 +49,7 @@ const CAMP = (() => {
   const STAT_KEYS = ['games', 'actions', 'lines', 'coins', 'upgrades', 'ratWins', 'wins', 'tower'];
   const amount = value => Number.isFinite(value) ? Math.max(0, Math.min(1e9, Math.floor(value))) : 0;
   function create() {
-    return { version: 1, gold: 60, levels: { attack: 0, hp: 0, loot: 0 }, cleared: [], claimed: [], settled: [], stats: Object.fromEntries(STAT_KEYS.map(k => [k, 0])) };
+    return { version: 1, gold: CONFIG.initialGold, levels: { attack: 0, hp: 0, loot: 0 }, cleared: [], claimed: [], settled: [], stats: Object.fromEntries(STAT_KEYS.map(k => [k, 0])) };
   }
   function restore(raw) {
     const p = create();
@@ -64,7 +66,8 @@ const CAMP = (() => {
     return p;
   }
   function player(p) {
-    return { hp: 100 + 15 * p.levels.hp, attack: 1 + .1 * p.levels.attack, armor: 0, loot: 1 + .1 * p.levels.loot };
+    return { hp: CONFIG.heroHp + CONFIG.hpPerLevel * p.levels.hp, attack: CONFIG.heroAttack + CONFIG.attackPerLevel * p.levels.attack,
+      armor: 0, loot: CONFIG.heroLoot + CONFIG.lootPerLevel * p.levels.loot };
   }
   const unlocked = (p,id) => Number.isInteger(id) && id >= 0 && id < ENEMIES.length && (id === 0 || p.cleared.includes(id) || PARENTS[id].some(parent => p.cleared.includes(parent)));
   const recommended = p => ENEMIES.find(e => unlocked(p,e.id) && !p.cleared.includes(e.id))?.id ?? ENEMIES.length-1;
@@ -84,24 +87,26 @@ const CAMP = (() => {
     if (!q || p.claimed.includes(id) || p.stats[q.stat] < q.target) return false;
     p.gold += q.reward; p.claimed.push(id); return true;
   }
-  function settle(p, battle) {
-    const e = ENEMIES[battle.node];
-    if (!e || !unlocked(p, e.id) || typeof battle.id !== 'string' || p.settled.includes(battle.id) || ![0, 1, -1].includes(battle.winner)) return null;
+  function settle(p, battle, options = {}) {
+    const e = options.test ? options.enemy || ENEMIES[battle.node] : ENEMIES[battle.node];
+    if (!e || !ENEMIES[e.id] || (!options.test && !unlocked(p, e.id)) || typeof battle.id !== 'string' || p.settled.includes(battle.id) || ![0, 1, -1].includes(battle.winner)) return null;
     const availableBefore = ENEMIES.filter(e => unlocked(p,e.id)).map(e => e.id);
     const won = battle.winner === 0, first = won && !p.cleared.includes(e.id);
-    const victoryBase = won ? (first ? e.reward : Math.max(10, Math.floor(e.reward * .3))) : 0;
-    const loot = Number.isFinite(battle.loot) ? Math.max(1, Math.min(2, battle.loot)) : 1;
-    const field = Math.round(Math.min(24, amount(battle.gold)) * loot);
+    const victoryBase = won ? (first ? e.reward : Math.max(CONFIG.minReplayGold, Math.floor(e.reward * CONFIG.replayRate))) : 0;
+    const loot = Number.isFinite(battle.loot) ? Math.max(0, Math.min(options.test ? 100 : CONFIG.heroLoot + CONFIG.lootPerLevel * UPGRADES.loot.cap, battle.loot)) : 1;
+    const coinCount = options.test ? options.coinCount ?? CONFIG.coinCount : CONFIG.coinCount;
+    const coinGold = options.test ? options.coinGold ?? CONFIG.coinGold : CONFIG.coinGold;
+    const field = Math.round(Math.min(coinCount * coinGold, amount(battle.gold)) * loot);
     const victory = Math.round(victoryBase * loot);
     p.gold += field + victory;
     p.stats.games++; p.stats.actions += amount(battle.actions); p.stats.lines += amount(battle.lines);
-    p.stats.coins += Math.min(8, amount(battle.collected));
+    p.stats.coins += Math.min(coinCount, amount(battle.collected));
     if (won) { p.stats.wins++; if (e.race === 'rat') p.stats.ratWins++; if (e.id === ENEMIES.length - 1) p.stats.tower = 1; }
     if (first) p.cleared.push(e.id);
     p.settled.push(battle.id); p.settled = p.settled.slice(-100);
     const opened = ENEMIES.filter(e => unlocked(p,e.id) && !availableBefore.includes(e.id)).map(e => e.id);
     return { field, victory, total: field + victory, first, won, opened };
   }
-  return { KEY, RACES, ENEMIES, PARENTS, ROUTES, recommended, danger, UPGRADES, QUESTS, ACHIEVEMENTS, create, restore, player, unlocked, cost, buy, claim, settle };
+  return { KEY, CONFIG, STAT_KEYS, RACES, ENEMIES, PARENTS, ROUTES, recommended, danger, UPGRADES, QUESTS, ACHIEVEMENTS, create, restore, player, unlocked, cost, buy, claim, settle };
 })();
 if (typeof module !== 'undefined') module.exports = CAMP;

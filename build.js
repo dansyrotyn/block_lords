@@ -23,10 +23,13 @@ const engine = fs.readFileSync(path.join(root, 'src', 'engine.js'), 'utf8').repl
 let html = fs.readFileSync(path.join(root, 'src', 'game.html'), 'utf8');
 html = html
   .replace('/*MAP_CSS*/', () => fs.readFileSync(path.join(root, 'src', 'map.css'), 'utf8'))
+  .replace('/*DEBUG_CSS*/', () => fs.readFileSync(path.join(root, 'src', 'debug.css'), 'utf8'))
   .replace('/*SFX*/{}', () => JSON.stringify(SFX))
   .replace('/*ENGINE*/', () => engine)
   .replace('/*CAMPAIGN*/', () => fs.readFileSync(path.join(root, 'src', 'campaign.js'), 'utf8').replace("if (typeof module !== 'undefined') module.exports = CAMP;", ''))
   .replace('/*RPG_UI*/', () => fs.readFileSync(path.join(root, 'src', 'rpg-ui.js'), 'utf8'))
+  .replace('/*DEBUG_TOOLS*/', () => fs.readFileSync(path.join(root, 'src', 'debug-tools.js'), 'utf8').replace(/^const BD = .*\nconst CAMP = .*\n/m, '').replace("if (typeof module !== 'undefined') module.exports = DEV;", ''))
+  .replace('/*DEBUG_UI*/', () => fs.readFileSync(path.join(root, 'src', 'debug-ui.js'), 'utf8'))
   .replace('/*AVATARS*/[]', () => JSON.stringify(avatars))
   .replace("'/*PLAYER*/'", () => JSON.stringify(player));
 
@@ -38,7 +41,7 @@ const page = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#2B99FE">
+<meta name="theme-color" content="#000000">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>

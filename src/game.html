@@ -36,15 +36,14 @@
              1.5px 1.5px 0 var(--line), -1.5px 1.5px 0 var(--line), 1.5px -1.5px 0 var(--line), -1.5px -1.5px 0 var(--line);
   color-scheme: light;
 }
-html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
-body { background: var(--grass); color: #fff; font-family: var(--font-body); -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; background: #000; }
+body { color: #fff; font-family: var(--font-body); -webkit-tap-highlight-color: transparent; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
 button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 
-body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%, #6FA834 70%, #55932F 100%); }
-#scene { position: fixed; top: 0; bottom: 0; left: 50%; width: min(100vw, 560px); transform: translateX(-50%); z-index: 0; }
+#scene { position: fixed; top: 0; bottom: 0; left: 50%; width: min(100vw, 480px); transform: translateX(-50%); z-index: 0; }
 #scene.home { overflow: hidden; background: #2B99FE; }
 #scene.home::before {
   content: ''; position: absolute; inset: 0;
@@ -75,14 +74,13 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
 /* ---------- magical crystal rune blocks ---------- */
 .blk {
   position: relative; border-radius: calc(var(--cs) * .14);
+}
+.blk::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
   background: url("__MAGIC__") center / 100% 100% no-repeat;
-  filter: drop-shadow(0 0 calc(var(--cs) * .045) rgba(50,225,255,.45));
+  filter: saturate(.55) brightness(.86) contrast(.92) drop-shadow(0 1px 2px rgba(9,24,43,.3));
 }
-/* Keep special symbols readable over the glowing rune. */
-.blk.bomb::before, .blk.x2::before {
-  content: ''; position: absolute; inset: 20%; border-radius: 22%;
-  background: radial-gradient(ellipse, #245997 45%, rgba(36,89,151,.9) 65%, transparent 75%);
-}
+/* Tone down the crystal artwork while keeping special symbols crisp. */
 .blk.bomb::after { content: ''; position: absolute; inset: 12% 12% 18%; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='18' cy='23' r='12.5' fill='%23262A38'/%3E%3Ccircle cx='13.5' cy='18.5' r='3.6' fill='%23fff' opacity='.42'/%3E%3Crect x='21.5' y='7.5' width='8' height='6.5' rx='1.6' transform='rotate(42 25.5 10.8)' fill='%234A5064'/%3E%3Cpath d='M28.5 7.5q2.5-4.5 6-2.6' stroke='%239A7546' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='35' cy='5' r='3.6' fill='%23FFC93C'/%3E%3Ccircle cx='35' cy='5' r='1.7' fill='%23FF6A3D'/%3E%3C/svg%3E") center / contain no-repeat; }
 .blk.x2::after {
   content: 'x2'; position: absolute; inset: 0 0 8%; display: grid; place-items: center;
@@ -392,6 +390,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
 
 .cell:not(.blk){background:rgba(34,48,61,.12);box-shadow:inset 0 0 0 1px rgba(20,32,45,.35);border-radius:3px}
 /*MAP_CSS*/
+/*DEBUG_CSS*/
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -403,12 +402,14 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     </h1>
     <button class="play-btn" id="playBtn" type="button"><span>PLAY</span></button>
     <div class="home-wallet"><span class="gold-icon" aria-hidden="true"></span> <span id="homeGold">60</span><small id="homeStats"></small></div>
+    <button class="test-launch" id="testHome" type="button">TEST MENU</button>
     <nav class="home-links" aria-label="Main menu"><button class="btn-small" id="mapHome" type="button">Map</button><button class="btn-small" id="upgradeHome" type="button">Upgrades</button><button class="btn-small" id="questsHome" type="button">Quests<span id="homeQuestCount"></span></button></nav>
   </section>
 
   <section class="screen" id="campaign" hidden>
     <header class="map-header" id="mapHeader">
       <button class="map-home" id="campaignBack" type="button" aria-label="Main menu">⌂</button>
+      <button class="test-launch" id="testMap" type="button" aria-label="Test menu">TEST</button>
       <div class="map-title"><h1 id="campaignTitle">Road to the Tower</h1><span>★ <b id="mapProgress">0 / 12</b></span></div>
       <span class="gold-pill"><span class="gold-icon" aria-hidden="true"></span><b id="campaignGold"></b></span>
     </header>
@@ -440,6 +441,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   </section>
 
   <section class="screen" id="game" hidden>
+    <button class="test-launch" id="testBattle" type="button">TEST</button>
     <button class="home-btn" id="leaveBtn" type="button" aria-label="Leave battle">
       <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 7.5L8 2l6 5.5V14H10v-4H6v4H2z" fill="#fff"/></svg>
     </button>
@@ -499,9 +501,19 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   </div>
 </div>
 
+<div class="debug-overlay" id="debugWindow" hidden>
+  <section class="debug-panel" role="dialog" aria-modal="true" aria-labelledby="debugTitle">
+    <header class="debug-header"><div><h2 id="debugTitle">Test Menu</h2><p class="debug-subtitle">Inspect, tune, and test every encounter</p></div><button class="window-close" id="debugClose" type="button" aria-label="Close test menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+    <div class="debug-mode"><span id="debugModeLabel"></span><button class="debug-button" id="debugModeToggle" type="button"></button></div>
+    <nav class="debug-tabs" aria-label="Test menu tabs"><button type="button" data-debug-tab="battle">Battle</button><button type="button" data-debug-tab="balance">Balance</button><button type="button" data-debug-tab="progress">Progress</button><button type="button" data-debug-tab="live">Live State</button></nav>
+    <div class="debug-content" id="debugContent"></div>
+    <p id="debugStatus" role="status">Ready.</p>
+  </section>
+</div>
 <script>
 /*ENGINE*/
 /*CAMPAIGN*/
+/*DEBUG_TOOLS*/
 </script>
 <script>
 (() => {
@@ -510,6 +522,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   const rnd = (a, b) => a + Math.random() * (b - a);
   const pick = arr => arr[Math.floor(Math.random() * arr.length)];
   const N = BD.N;
+  let testMode = false, debugOpen = false, debugPauseBot = false;
 
   // ---------- sound: CC0 effects from the uisfx library ----------
   const SFX_DATA = /*SFX*/{};
@@ -1004,7 +1017,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
 
   // ---------- turn flow ----------
   async function step(myGen) {
-    if (myGen !== gen) return;
+    if (myGen !== gen || debugOpen) return;
     renderTurnbar();
     if (S.over) { timer.running = false; setBusy(true); renderTray(false); await sleep(500); endMatch(myGen); return; }
     if (S.turn !== shownTurn) {
@@ -1034,7 +1047,11 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
       renderTray(true);
       return step(myGen);
     }
-    if (S.turn === 1) { setBusy(true); trayEl.classList.add('locked'); return botAct(myGen); }
+    if (S.turn === 1) {
+      setBusy(true); trayEl.classList.add('locked');
+      if (testMode && debugPauseBot) { timer.running = false; return; }
+      return botAct(myGen);
+    }
     setBusy(false);
     trayEl.classList.remove('locked');
   }
@@ -1227,7 +1244,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
     $('ava1').src = opp.avatar;
     $('oppName').textContent = opp.name;
     $('flag0').textContent = `⚔ ${percent(S.players[0].attack)}%`;
-    $('flag1').textContent = `${CAMP.RACES[opp.race].name} · 🛡 ${percent(opp.armor)}%`;
+    $('flag1').textContent = `${CAMP.RACES[opp.race].name} · 🛡 ${percent(S.players[1].armor)}%`;
     shownHp = S.maxHp.slice();
     setHp(0, S.hp[0], true); setHp(1, S.hp[1], true);
     setPreview(0, 0); setPreview(1, 0);
@@ -1255,7 +1272,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
       cardHTML(HERO_AVATAR, '<b>Hero</b>', w === 1 ? 'loser' : '', hpLine(S.hp[0])) +
       '<div class="vs-word">VS</div>' +
       cardHTML(opp.avatar, `<b>${esc(opp.name)}</b>`, w === 0 ? 'loser' : '', hpLine(S.hp[1]), 'opp');
-    if (reward) $('rewardSummary').innerHTML = `<strong>+${reward.total} ${GOLD_ICON}</strong><small>Board: ${reward.field} · Victory: ${reward.victory}</small><small>${reward.first ? opp.id === 11 ? 'Tower conquered! Chapter complete.' : reward.opened.length ? `New encounters unlocked: ${reward.opened.length}` : 'Enemy defeated!' : w === 0 ? 'Replay victories grant a smaller reward.' : 'Collected gold saved. Try again!'}</small><small>${readyCount() ? `Quests ready: ${readyCount()}` : ''}</small>`;
+    if (reward) $('rewardSummary').innerHTML = `<strong>+${reward.total} ${GOLD_ICON}</strong><small>${battleContext.test ? 'TEST PROFILE · ' : ''}Board: ${reward.field} · Victory: ${reward.victory}</small><small>${reward.first ? opp.id === 11 ? 'Tower conquered! Chapter complete.' : reward.opened.length ? `New encounters unlocked: ${reward.opened.length}` : 'Enemy defeated!' : w === 0 ? 'Replay victories grant a smaller reward.' : 'Collected gold saved. Try again!'}</small><small>${readyCount() ? `Quests ready: ${readyCount()}` : ''}</small>`;
     $('endScreen').hidden = false;
   }
 
@@ -1299,6 +1316,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
 
   // test hook for automated play-throughs
   window.__bb = { state: () => S, geo: () => geo, busy: () => busy, sfx: () => Object.keys(buffers).length, audio: () => actx && actx.state, cd: () => cdMode, search: () => !!searchLoop, left: () => timer.left };
+  /*DEBUG_UI*/
 
   function boot() {
     renderHomeProfile(); show('home');

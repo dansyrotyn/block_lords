@@ -203,7 +203,7 @@ const BD = (() => {
     const coinCount = Math.max(0, Math.min(free.length, Math.floor(options.coinCount || 0)));
     for (let i = 0; i < coinCount; i++) {
       const j = Math.floor(rand(S) * free.length), cell = free.splice(j, 1)[0];
-      S.coins[cell] = 3;
+      S.coins[cell] = Number.isFinite(options.coinGold) ? Math.max(1, Math.min(1e6, Math.floor(options.coinGold))) : 3;
     }
     return S;
   }

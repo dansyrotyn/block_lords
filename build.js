@@ -12,7 +12,7 @@ const avatars = fs.readdirSync(avDir).filter(f => f.endsWith('.jpg')).sort().map
 const player = dataUri(path.join(root, 'assets', 'player.jpg'));
 
 // арт: фон меню, поле і фони матчу
-const ART = { __HOME__: 'home-ui-reference.png', __BOARD__: 'arena-runes.png', __HERO__: 'hero-mage.jpg', __RAT__: 'rat-scout.jpg', __MAGIC__: 'magic-block.png', __BGTOP__: 'bg_top.webp', __BGBOTTOM__: 'bg_bottom.webp' };
+const ART = { __HOME__: 'home-ui-reference.png', __MAP__: 'world-map-v1.jpg', __BANDIT__: 'bandit-v1.jpg', __ORC__: 'orc-v1.jpg', __DEMON__: 'demon-v1.jpg', __BOARD__: 'arena-runes.png', __HERO__: 'hero-mage.jpg', __RAT__: 'rat-scout.jpg', __MAGIC__: 'magic-block.png', __BGTOP__: 'bg_top.webp', __BGBOTTOM__: 'bg_bottom.webp' };
 
 // звуки: ім'я файлу без розширення = ім'я звуку в коді (sfx('place1'))
 const sfxDir = path.join(root, 'assets', 'sfx');
@@ -22,6 +22,7 @@ for (const f of fs.readdirSync(sfxDir).filter(f => /\.(mp3|wav)$/.test(f)).sort(
 const engine = fs.readFileSync(path.join(root, 'src', 'engine.js'), 'utf8').replace("if (typeof module !== 'undefined') module.exports = BD;", '');
 let html = fs.readFileSync(path.join(root, 'src', 'game.html'), 'utf8');
 html = html
+  .replace('/*MAP_CSS*/', () => fs.readFileSync(path.join(root, 'src', 'map.css'), 'utf8'))
   .replace('/*SFX*/{}', () => JSON.stringify(SFX))
   .replace('/*ENGINE*/', () => engine)
   .replace('/*CAMPAIGN*/', () => fs.readFileSync(path.join(root, 'src', 'campaign.js'), 'utf8').replace("if (typeof module !== 'undefined') module.exports = CAMP;", ''))

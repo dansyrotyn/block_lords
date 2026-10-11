@@ -1,0 +1,67 @@
+/* Illustrated adventure map, fixed navigation and independent windows. */
+.home-links { display:none; }
+#campaign { padding:0; gap:0; background:#243F32; overflow:hidden; }
+#campaign .campaign-content { padding:0; scrollbar-width:thin; scrollbar-color:#D8AF61 #254734; touch-action:pan-y; }
+.map-header { position:relative; z-index:3; flex:none; height:72px; padding:10px 14px; display:flex; align-items:center; gap:10px; background:linear-gradient(#173B5BF5,#0C243CEE); border-bottom:2px solid #C49B47; box-shadow:0 3px 12px #102D37AA; }
+.map-home { display:grid; place-items:center; width:38px; height:38px; flex:none; border:2px solid #D8B368; border-radius:12px; background:linear-gradient(#32698B,#102B49); font:30px/1 var(--font-display); box-shadow:inset 0 1px 0 #93CAE1; }
+.map-title { flex:1; text-align:center; min-width:0; }
+.map-title h1 { font:21px/1.1 var(--font-display); margin:0 0 4px; color:#FFF0CA; text-shadow:0 2px 0 #152636; }
+.map-title > span { color:#FFD45B; font-size:12px; }
+.map-header .gold-pill { padding:7px 8px; font-size:13px; }
+.world-map { position:relative; width:100%; aspect-ratio:4/11; isolation:isolate; background:linear-gradient(#46476C,#997D52 40%,#56A544); }
+.world-terrain { position:absolute; inset:0; width:100%; height:100%; object-fit:fill; pointer-events:none; }
+.world-road { position:absolute; inset:0; width:100%; height:100%; fill:none; stroke-linecap:round; pointer-events:none; filter:drop-shadow(0 2px 2px #25332266); }
+.world-node { position:absolute; transform:translate(-50%,-29px); width:68px; height:83px; display:flex; align-items:center; flex-direction:column; padding:0; border:0; background:none; z-index:2; }
+.monster-medallion { position:relative; display:block; width:58px; height:58px; border:3px solid #E5BE60; border-radius:50%; background:#18364E; box-shadow:0 3px 0 #674320,0 5px 9px #173427B3,inset 0 0 0 2px #FFE7A6; }
+.monster-medallion img { display:block; width:100%; height:100%; object-fit:cover; border-radius:50%; border:2px solid #5B3F26; }
+.node-status { position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); min-width:25px; height:22px; padding:1px 5px; display:grid; place-items:center; border:2px solid #D5AE56; border-radius:8px; background:#142C47; color:#FFF1BA; font:13px/1 var(--font-display); box-shadow:0 2px 2px #10272B; }
+.node-stars { display:block; color:#EACA7B; font:14px/1 var(--font-display); margin-top:9px; text-shadow:1px 1px 0 #5C4025,-1px -1px 0 #5C4025; }
+.world-node.locked .monster-medallion { border-color:#95886A; }
+.world-node.locked img { filter:saturate(.55) brightness(.85); }
+.world-node.locked { cursor:default; }
+.world-node.cleared .monster-medallion { border-color:#CCEC8B; box-shadow:0 3px 0 #3F612B,0 4px 9px #173427B3; }
+.world-node.cleared .node-status { color:#BFFE87; border-color:#AAD276; }
+.world-node.boss .monster-medallion { border-color:#E7BA64; outline:2px solid #704721; outline-offset:2px; }
+.world-node.current .monster-medallion { border-color:#CFFFFF; box-shadow:0 0 0 4px #168CDB77,0 0 23px #6CE5FF,0 5px 0 #124564; }
+.world-node.current::before { content:''; position:absolute; top:-21px; width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-top:12px solid #C0FCFF; filter:drop-shadow(0 2px 2px #14536B); animation:map-pointer 1.4s ease-in-out infinite; }
+.next-battle { position:absolute; top:81px; left:50%; transform:translateX(-50%); padding:4px 10px; white-space:nowrap; border-radius:8px; border:1px solid #FFE294; background:#214D39; color:#FFF1BB; font:12px/1 var(--font-display); box-shadow:0 2px 4px #17342799; }
+.region-label { position:absolute; z-index:1; padding:4px 8px; color:#FFF1CD; background:#2637238F; border:1px solid #EBD89E77; border-radius:12px; font:13px/1.2 var(--font-display); text-shadow:0 1px 2px #1A2C29; pointer-events:none; }
+.forest-label { right:5%; top:96%; }
+.ruins-label { right:4%; top:57%; }
+.peaks-label { left:4%; top:41%; }
+.tower-label { right:3%; top:3%; }
+.map-footer { position:relative; z-index:3; display:flex; align-items:flex-end; justify-content:center; gap:58px; padding:9px 12px max(12px,env(safe-area-inset-bottom)); background:linear-gradient(#0F304AEF,#081E32); border-top:2px solid #B98F49; box-shadow:0 -5px 16px #102C3980; flex:none; }
+.map-menu-button { position:relative; min-width:92px; display:flex; align-items:center; flex-direction:column; gap:5px; padding:0; font:15px/1 var(--font-display); color:#FFF0C9; text-shadow:0 2px 0 #121E2D; }
+.menu-medallion { display:grid; place-items:center; width:55px; height:55px; border:3px solid #DABA6A; border-radius:50%; background:radial-gradient(circle at 40% 30%,#419CD1,#0C3C5D 80%); box-shadow:0 2px 0 #705127,inset 0 0 0 2px #6DC9E8; }
+.menu-medallion svg { width:45px; height:45px; filter:drop-shadow(0 2px 1px #08283F); }
+.quest-badge { position:absolute; top:0; right:15px; min-width:22px; padding:3px; border-radius:50%; color:white; background:#D34D3D; border:2px solid #FFD573; font:12px/1 var(--font-display); }
+.campaign-window { position:absolute; inset:0; z-index:10; background:#061723A6; backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; padding:18px 12px; }
+.progress-panel { display:flex; flex-direction:column; width:100%; max-height:100%; min-height:0; padding:15px 12px 12px; background:linear-gradient(#163F65,#0A233A); border-color:#D7B76A; box-shadow:0 0 0 3px #102536,0 10px 30px #071525; }
+.window-header { display:flex; align-items:center; gap:8px; flex:none; margin-bottom:12px; }
+.window-header h2 { flex:1; margin:0; color:#FFF0CA; font:23px/1.1 var(--font-display); text-shadow:0 2px 0 #12283B; }
+.window-close { display:grid; place-items:center; width:34px; height:34px; padding:0; border-radius:10px; background:linear-gradient(#376F95,#173B5E); border:2px solid #D7B76A; color:#FFF3CD; font:27px/1 var(--font-body); flex:none; }
+.progress-hero { display:flex; align-items:center; gap:12px; flex:none; padding:0 0 12px; border-bottom:1px solid #709DBA55; }
+.progress-hero img { width:52px; height:52px; object-fit:cover; border-radius:14px; border:2px solid #D7B76A; }
+.progress-hero > div { flex:1; }
+.progress-hero .hero-summary { text-align:left; margin:0 0 6px; font-size:12px; }
+.progress-hero .gold-pill { display:inline-block; font-size:12px; padding:3px 8px; }
+.progress-content { overflow:auto; min-height:0; padding:4px 2px 0; overscroll-behavior:contain; scrollbar-width:thin; }
+.progress-content .campaign-intro { font-size:14px; margin:8px 0 14px; }
+.progress-content .upgrade-card { background:linear-gradient(#254F76,#122F4B); border:2px solid #6C8EAD; box-shadow:inset 0 1px 0 #A5CFE844,0 3px 0 #071E32; padding:13px 11px; margin-bottom:12px; }
+.progress-content .quest-card { background:linear-gradient(#254F76,#122F4B); border:2px solid #6C8EAD; box-shadow:inset 0 1px 0 #A5CFE844,0 3px 0 #071E32; }
+.enemy-panel { position:relative; width:100%; max-width:360px; padding:20px 15px; background:radial-gradient(ellipse at 50% 10%,#315F86,#0B2741 75%); border-color:#D7B76A; }
+.enemy-panel > .window-close { position:absolute; top:10px; right:10px; }
+.enemy-panel .encounter { padding:0; text-align:center; }
+.encounter-kicker { display:block; color:#D6BF83; font-size:11px; letter-spacing:2px; margin-bottom:15px; }
+.enemy-portrait { display:block; width:96px; height:96px; border-radius:50%; border:3px solid #E6C16D; margin:0 auto 12px; box-shadow:0 0 0 3px #092C46,0 0 20px #609BE777; }
+.enemy-panel .encounter h2 { font-size:25px; margin:0 0 5px; color:#FFF0C5; }
+.enemy-panel .enemy-stats { padding:12px 0; border-block:1px solid #729FBC55; margin-top:14px; }
+.enemy-panel .encounter p { margin:13px 0 17px; }
+.enemy-panel .fight-row { text-align:left; }
+.enemy-panel .battle-rule { margin-top:15px; }
+@keyframes map-pointer { 50%{transform:translateY(5px)} }
+@media (prefers-reduced-motion:reduce) { .world-node.current::before {animation:none;} }
+@media (max-height:650px) { .map-header{height:60px;padding-block:6px;} .map-footer{padding-block:5px 8px;} .menu-medallion{width:46px;height:46px;} .menu-medallion svg{width:38px;height:38px;} .map-menu-button{font-size:13px;} .campaign-window{padding:10px;} .progress-hero{padding-bottom:8px;} }
+
+#scene.campaign, body[data-screen="campaign"] {background:#173D3B;}
+body[data-screen="campaign"] #soundBtn {display:none;}

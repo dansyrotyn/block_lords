@@ -391,6 +391,7 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
 @media (max-height: 700px) { #campaign { padding-top: 38px; gap: 8px; } .encounter { padding: 9px; } .campaign-header h1 { font-size: 21px; } .encounter p { margin: 5px 0; } }
 
 .cell:not(.blk){background:rgba(34,48,61,.12);box-shadow:inset 0 0 0 1px rgba(20,32,45,.35);border-radius:3px}
+/*MAP_CSS*/
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -406,10 +407,30 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   </section>
 
   <section class="screen" id="campaign" hidden>
-    <header class="campaign-header"><button class="btn-small" id="campaignBack" type="button" aria-label="Головне меню">‹</button><h1 id="campaignTitle">Шлях до вежі</h1><span class="gold-pill">🪙 <span id="campaignGold">60</span></span></header>
-    <p class="hero-summary" id="heroSummary"></p><p class="save-notice" id="saveNotice" hidden></p>
-    <nav class="campaign-tabs" aria-label="Кампанія"><button type="button" data-tab="map">Карта</button><button type="button" data-tab="upgrades">Прокачка</button><button type="button" data-tab="quests">Квести</button></nav>
-    <div class="campaign-content" id="campaignContent"></div><aside class="encounter panel-look" id="encounter"></aside>
+    <header class="map-header" id="mapHeader">
+      <button class="map-home" id="campaignBack" type="button" aria-label="Головне меню">⌂</button>
+      <div class="map-title"><h1 id="campaignTitle">Шлях до вежі</h1><span>★ <b id="mapProgress">0 / 12</b></span></div>
+      <span class="gold-pill">🪙 <b id="campaignGold"></b></span>
+    </header>
+    <p class="save-notice" id="saveNotice" hidden></p>
+    <div class="campaign-content" id="campaignContent"></div>
+    <nav class="map-footer" id="mapFooter" aria-label="Меню пригоди">
+      <button type="button" class="map-menu-button" data-window="upgrades"><span class="menu-medallion" id="mapUpgradeIcon"></span><span>Прокачка</span></button>
+      <button type="button" class="map-menu-button" data-window="quests"><span class="menu-medallion" id="mapQuestIcon"></span><span>Квести</span><b class="quest-badge" id="mapQuestBadge" hidden></b></button>
+    </nav>
+    <div class="campaign-window" id="progressWindow" hidden>
+      <section class="progress-panel panel-look" role="dialog" aria-modal="true" aria-labelledby="progressTitle">
+        <header class="window-header"><h2 id="progressTitle"></h2><button id="progressClose" type="button" class="window-close" data-close aria-label="Закрити й повернутися до карти">×</button></header>
+        <div class="progress-hero"><img id="progressPortrait" alt="Герой"><div><p class="hero-summary" id="heroSummary"></p><span class="gold-pill">🪙 <b id="progressGold"></b></span></div></div>
+        <div id="progressContent" class="progress-content"></div>
+      </section>
+    </div>
+    <div class="campaign-window" id="encounterWindow" hidden>
+      <section class="enemy-panel panel-look" role="dialog" aria-modal="true" aria-labelledby="enemyTitle">
+        <button type="button" class="window-close" id="encounterClose" data-close aria-label="Закрити й повернутися до карти">×</button>
+        <div class="encounter" id="encounter"></div>
+      </section>
+    </div>
   </section>
 
   <section class="screen" id="search" hidden>
@@ -686,7 +707,8 @@ body { background: linear-gradient(180deg, #2B99FE 0%, #8FD0F4 26%, #A4D031 30%,
   let sceneMode = '';
   function show(id) {
     for (const s of ['home', 'campaign', 'search', 'game']) $(s).hidden = s !== id;
-    const mode = id === 'home' || id === 'campaign' ? 'home' : 'game';
+    document.body.dataset.screen = id;
+    const mode = id === 'campaign' ? 'campaign' : id === 'home' ? 'home' : 'game';
     if (mode !== sceneMode) buildScene(mode);
     else if (mode === 'home') placeHome();
   }

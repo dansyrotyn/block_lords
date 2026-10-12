@@ -312,6 +312,8 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 .side.opp .ava { background: #E77886 !important; }
 .clock { background: radial-gradient(circle,#134B86,#051C3B 70%); border-color: #E5B65B; box-shadow: 0 0 0 3px #614521,inset 0 0 10px #37C8FF,0 0 8px #4EACFF77; }
 .clock .bar { stroke: #55D8FF; }
+.clock.untimed { background: transparent; box-shadow: none; border: 0; }
+.clock.untimed svg, .clock.untimed .num { display: none; }
 .tray { background: linear-gradient(180deg,#0C3964,#04172E); border-color: #EDC86A; border-radius: 16px; box-shadow: 0 0 0 2px #604622,inset 0 0 0 2px #2580A6,0 5px 0 #10203355; }
 .slot { background: radial-gradient(ellipse at 50% 40%,#143650,#061A2D); border: 1px solid #257095; border-radius: 14px; }
 .btn-small { border-color: #C79D4D; background: linear-gradient(#134D82,#082A4D); }
@@ -458,7 +460,7 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
         <div class="hp you" id="hp0"><div class="track"><i class="trail"></i><i class="pv"></i><i class="fill"></i><span class="num">100 / 100</span></div><svg class="heart" viewBox="0 0 36 34" aria-hidden="true"><path d="M18 31C7 23 2.5 17.5 2.5 11.2A8 8 0 0 1 18 7.4A8 8 0 0 1 33.5 11.2C33.5 17.5 29 23 18 31Z" fill="#FF3B5C" stroke="#0F1830" stroke-width="2.6" stroke-linejoin="round"/><path d="M18 27.5C10.5 21.5 7 17 6.8 12.5" stroke="#C8163A" stroke-width="3" fill="none" stroke-linecap="round" opacity=".5"/><ellipse cx="10.5" cy="11.5" rx="3.6" ry="2.4" transform="rotate(-35 10.5 11.5)" fill="#fff" opacity=".8"/></svg></div>
         <div class="hp opp" id="hp1"><div class="track"><i class="trail"></i><i class="pv"></i><i class="fill"></i><span class="num">100 / 100</span></div><svg class="heart" viewBox="0 0 36 34" aria-hidden="true"><path d="M18 31C7 23 2.5 17.5 2.5 11.2A8 8 0 0 1 18 7.4A8 8 0 0 1 33.5 11.2C33.5 17.5 29 23 18 31Z" fill="#FF3B5C" stroke="#0F1830" stroke-width="2.6" stroke-linejoin="round"/><path d="M18 27.5C10.5 21.5 7 17 6.8 12.5" stroke="#C8163A" stroke-width="3" fill="none" stroke-linecap="round" opacity=".5"/><ellipse cx="10.5" cy="11.5" rx="3.6" ry="2.4" transform="rotate(-35 10.5 11.5)" fill="#fff" opacity=".8"/></svg></div>
       </div>
-      <div class="clock idle" id="clock">
+      <div class="clock idle untimed" id="clock">
         <svg viewBox="0 0 46 46" aria-hidden="true"><circle class="track" cx="23" cy="23" r="19.5"/><circle class="bar" cx="23" cy="23" r="19.5" transform="rotate(-90 23 23)"/></svg>
         <span class="num" id="clockNum"></span>
         <div class="pips" id="pips"></div>
@@ -801,7 +803,7 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 
   // ---------- state ----------
   let S = null, opp = null, drag = null, shownTurn = null, shownHp = [100, 100], lastOppCells = null;
-  const timer = { left: 20000, running: false, last: performance.now() };
+  const timer = { left: BD.CONFIG.turnSeconds * 1000, running: false, last: performance.now() };
 
   function renderTray(animate) {
     const side = S.turn;
@@ -832,6 +834,7 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
     let h = '';
     for (let i = 0; i < total; i++) h += `<i class="${i < S.actionsLeft ? '' : 'used'}"></i>`;
     pips.innerHTML = S.over ? '' : h;
+    $('clock').classList.toggle('untimed', !BD.CONFIG.turnTimerEnabled);
     $('clock').style.setProperty('--side', S.turn === 0 ? 'var(--you)' : 'var(--opp)');
     $('side0').classList.toggle('active', !S.over && S.turn === 0);
     $('side1').classList.toggle('active', !S.over && S.turn === 1);
@@ -875,7 +878,8 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
   function timerFrame(now) {
     const dt = Math.min(100, now - timer.last);
     timer.last = now;
-    const live = S && timer.running && !S.over;
+    if (!BD.CONFIG.turnTimerEnabled) timer.running = false;
+    const live = BD.CONFIG.turnTimerEnabled && S && timer.running && !S.over;
     clockEl.classList.toggle('idle', !live);
     if (live) {
       const paused = busyTimer() || !$('leaveScreen').hidden;
@@ -1035,7 +1039,7 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
       await banner(S.turn === 0 ? 'YOUR TURN' : 'ENEMY TURN', S.turn === 0 ? 'you' : 'opp');
       if (myGen !== gen) return;
       timer.left = BD.CONFIG.turnSeconds * 1000;
-      timer.running = true;
+      timer.running = BD.CONFIG.turnTimerEnabled;
     }
     if (!BD.handFits(S)) {
       setBusy(true);
@@ -1057,6 +1061,7 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
   }
 
   async function onTimeout() {
+    if (!BD.CONFIG.turnTimerEnabled || !timer.running || !S || S.over) return;
     const myGen = gen;
     setBusy(true);
     timer.running = false;
@@ -1098,7 +1103,8 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
     const [tx0, ty0, tr] = center(trayEl);
     if (!finger.classList.contains('on')) { placeFinger(tx0 + rnd(-40, 40), tr.top - 30); finger.classList.add('on'); }
     // thinking: the finger drifts over the board for a moment
-    const think = Math.min(firstOfTurn ? rnd(1100, 2000) : rnd(650, 1400), Math.max(300, timer.left - 6000));
+    const thinkDuration = firstOfTurn ? rnd(1100, 2000) : rnd(650, 1400);
+    const think = BD.CONFIG.turnTimerEnabled ? Math.min(thinkDuration, Math.max(300, timer.left - 6000)) : thinkDuration;
     const br = boardEl.getBoundingClientRect();
     await moveFinger(br.left + br.width * rnd(.25, .75), br.top + br.height * rnd(.35, .8), think * .55);
     if (myGen !== gen) return;

@@ -55,7 +55,7 @@
     refreshDebugBackground();
     if (debugReturnFocus?.isConnected) debugReturnFocus.focus();
     if (resume && S && !S.over) {
-      shownTurn = S.turn; timer.left = Math.max(1000,timer.left); timer.running = true; animating = false;
+      shownTurn = S.turn; timer.left = Math.max(1000,timer.left); timer.running = BD.CONFIG.turnTimerEnabled; animating = false;
       step(gen);
     }
   }
@@ -78,11 +78,14 @@
         ${debugField('seed','Random seed (blank = random)',v.seed,-2147483648,2147483647,1,true)}</div>
         <label class="debug-check"><input name="pauseBot" type="checkbox" ${v.pauseBot ? 'checked' : ''}>Pause bot turns for manual inspection</label>
         <div class="debug-actions">${debugButton('start','START TEST BATTLE','primary')}${debugButton('battle-defaults','Use default stats')}</div>
-        <p>Board: ${BD.N} × ${BD.N} · ${BD.CONFIG.rounds} rounds · ${BD.CONFIG.baseActions} actions · ${BD.CONFIG.turnSeconds}s per turn. Configure these in Balance.</p>`;
+        <p>Board: ${BD.N} × ${BD.N} · ${BD.CONFIG.rounds} rounds · ${BD.CONFIG.baseActions} actions · ${BD.CONFIG.turnTimerEnabled ? BD.CONFIG.turnSeconds+'s per turn' : 'No time limit'}. Configure these in Balance.</p>`;
     } else if (debugTab === 'balance') {
       const fields = (group,list,values) => `<div class="debug-fields">${list.map(([key,label,min,max,step])=>debugField(group+'_'+key,label,values[key],min,max,step)).join('')}</div>`;
       body.innerHTML = `<p class="debug-note">Balance changes affect sandbox games for this session. Returning to normal restores the standard rules. Decimal multipliers use 1 = 100%.</p><div class="debug-actions">${debugButton('balance-save','Apply balance','primary')}${debugButton('balance-reset','Reset balance')}</div>
-        <h3>Puzzle & Combat</h3>${fields('engine',DEV.ENGINE_FIELDS,BD.CONFIG)}
+        <h3>Puzzle & Combat</h3>
+        <label class="debug-check"><input name="engine_turnTimerEnabled" type="checkbox" ${BD.CONFIG.turnTimerEnabled ? 'checked' : ''}>Enable turn timer</label>
+        <p>No time limit by default. The duration below applies when the turn timer is enabled.</p>
+        ${fields('engine',DEV.ENGINE_FIELDS,BD.CONFIG)}
         <p>Fixed layout: ${BD.N} × ${BD.N} board, ${BD.CONFIG.handSize} pieces per hand, ${BD.CONFIG.colors} internal colors. One x2 block doubles damage; the cap limits stacked multipliers. Bombs affect a 3 × 3 area.</p>
         <h3>Hero & Gold</h3>${fields('rpg',DEV.RPG_FIELDS,CAMP.CONFIG)}
         <h3>Upgrade Prices</h3>${Object.entries(CAMP.UPGRADES).map(([key,u])=>`<h3>${u.name}</h3>${key === 'hp' ? '<p>Vitality has no level limit. Next price = starting price + price increase × current level.</p>' : ''}<div class="debug-fields">${debugField('upgrade_'+key+'_base','Starting price',u.base,1,1e6)}${key === 'hp' ? debugField('upgrade_'+key+'_step','Price increase per level',u.step,1,1e6) : debugField('upgrade_'+key+'_growth','Price growth multiplier',u.growth,1,3,.01)+debugField('upgrade_'+key+'_cap','Maximum level',u.cap,1,50)}</div>`).join('')}
@@ -102,7 +105,7 @@
       const live = S && !S.over && battleContext?.test;
       body.innerHTML = `<p class="debug-note">${live ? 'Battle paused. Apply values, then close this menu to continue.' : S && !S.over ? 'This is a normal battle. Start a sandbox battle to edit live state.' : 'Start a test battle to use live controls.'}</p>`;
       if (live) {
-        body.innerHTML += `<div class="debug-fields">${debugField('round','Current round',S.round,1,BD.CONFIG.rounds)}${debugSelect('turn','Current turn',S.turn,[[0,'Hero'],[1,'Enemy']])}${debugField('actions','Actions remaining',S.actionsLeft,1,30)}${debugField('bonus','Combo bonuses used',S.bonusUsed,0,BD.CONFIG.maxBonusActions)}${debugField('seconds','Timer remaining (seconds)',Math.ceil(timer.left/1000),1,BD.CONFIG.turnSeconds)}${debugField('seed','Current RNG state',S.seed,-2147483648,2147483647)}${debugField('loot','Gold multiplier (%)',percent(battleContext.loot),0,10000)}${debugField('coinLimit','Coins allowed in settlement',battleContext.coinCount,0,1e6)}${debugField('coinValue','Gold per coin in settlement',battleContext.coinGold,1,1e6)}</div>
+        body.innerHTML += `<p>${BD.CONFIG.turnTimerEnabled ? 'Turn timer enabled.' : 'No time limit. Enable the turn timer in Balance to test timed battles.'}</p><div class="debug-fields">${debugField('round','Current round',S.round,1,BD.CONFIG.rounds)}${debugSelect('turn','Current turn',S.turn,[[0,'Hero'],[1,'Enemy']])}${debugField('actions','Actions remaining',S.actionsLeft,1,30)}${debugField('bonus','Combo bonuses used',S.bonusUsed,0,BD.CONFIG.maxBonusActions)}${BD.CONFIG.turnTimerEnabled ? debugField('seconds','Timer remaining (seconds)',Math.ceil(timer.left/1000),1,BD.CONFIG.turnSeconds) : ''}${debugField('seed','Current RNG state',S.seed,-2147483648,2147483647)}${debugField('loot','Gold multiplier (%)',percent(battleContext.loot),0,10000)}${debugField('coinLimit','Coins allowed in settlement',battleContext.coinCount,0,1e6)}${debugField('coinValue','Gold per coin in settlement',battleContext.coinGold,1,1e6)}</div>
           <label class="debug-check"><input name="pauseBot" type="checkbox" ${debugPauseBot ? 'checked' : ''}>Pause bot turns</label>
           ${[0,1].map(side=>`<h3>${side === 0 ? 'Hero' : opp.name}</h3><div class="debug-fields">${debugField('side'+side+'_maxHp','Full health (HP)',S.maxHp[side],1,side === 0 ? null : 100000)}${debugField('side'+side+'_hp','Current HP',S.hp[side],1,S.maxHp[side])}${debugField('side'+side+'_attack','Attack (%)',percent(S.players[side].attack),10,10000)}${debugField('side'+side+'_armor','Armor (%)',percent(S.players[side].armor),0,60)}${debugField('side'+side+'_score','Damage points',S.scores[side])}${debugField('side'+side+'_gold','Collected raw gold',S.gold[side])}${debugField('side'+side+'_collected','Coins collected',S.collected[side])}${Object.keys(S.stats).filter(key=>Array.isArray(S.stats[key])).map(key=>debugField('side'+side+'_'+key,key.replace(/^./,ch=>ch.toUpperCase()),S.stats[key][side])).join('')}</div>`).join('')}
           <div class="debug-actions">${debugButton('live-save','Apply live values','primary')}${debugButton('skip-turn','Skip current turn')}${debugButton('heal','Heal both sides')}</div>
@@ -117,10 +120,12 @@
     return {version:1,mode:testMode ? 'sandbox' : 'normal',profile,
       rules:{puzzle:BD.CONFIG,rpg:CAMP.CONFIG,upgrades:CAMP.UPGRADES,quests:[...CAMP.QUESTS,...CAMP.ACHIEVEMENTS]},
       enemy:opp ? {id:opp.id,name:opp.name,race:opp.race,ai:opp.ai,reward:opp.reward} : null,
-      battle:S,context:battleContext,timerSeconds:Math.round(timer.left/1000),botPaused:debugPauseBot};
+      battle:S,context:battleContext,timerEnabled:BD.CONFIG.turnTimerEnabled,
+      timerSeconds:BD.CONFIG.turnTimerEnabled && S && !S.over ? Math.round(timer.left/1000) : null,botPaused:debugPauseBot};
   }
   function applyLiveValues(values) {
-    DEV.editLive(S,values); timer.left = DEV.number(values.seconds,1,BD.CONFIG.turnSeconds,timer.left/1000)*1000;
+    DEV.editLive(S,values);
+    if (BD.CONFIG.turnTimerEnabled) timer.left = DEV.number(values.seconds,1,BD.CONFIG.turnSeconds,timer.left/1000)*1000;
     battleContext.loot = DEV.number(values.loot,0,10000,percent(battleContext.loot))/100;
     battleContext.coinCount = DEV.number(values.coinLimit,0,1e6,battleContext.coinCount,1);
     battleContext.coinGold = DEV.number(values.coinValue,1,1e6,battleContext.coinGold,1);

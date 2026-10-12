@@ -34,6 +34,8 @@ const DEV = (() => {
     [...CAMP.QUESTS,...CAMP.ACHIEVEMENTS].forEach((q,i) => Object.assign(q, defaults.quests[i]));
   }
   function applyBalance(values) {
+    if (typeof values.engine_turnTimerEnabled === 'boolean')
+      BD.CONFIG.turnTimerEnabled = values.engine_turnTimerEnabled;
     for (const [group,fields,target] of [['engine',ENGINE_FIELDS,BD.CONFIG],['rpg',RPG_FIELDS,CAMP.CONFIG]])
       for (const [key,,min,max,step] of fields) target[key] = number(values[group+'_'+key],min,max,target[key],step);
     for (const [key,u] of Object.entries(CAMP.UPGRADES)) {

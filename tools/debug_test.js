@@ -40,6 +40,16 @@ test('balance changes affect damage and timer, then reset exactly',()=>{
   assert.equal(C.CONFIG.hpPerLevel,15); assert.equal(C.UPGRADES.hp.base,45); assert.equal(C.QUESTS[0].target,1);
   assert.equal(C.UPGRADES.hp.step,5); assert.equal(C.UPGRADES.hp.cap,null); assert.equal(C.UPGRADES.attack.growth,1.18);
 });
+test('turn timer is off by default, can be toggled and resets to untimed battles',()=>{
+  assert.equal(BD.CONFIG.turnTimerEnabled,false);
+  D.applyBalance({engine_turnTimerEnabled:true,engine_turnSeconds:3});
+  assert.equal(BD.CONFIG.turnTimerEnabled,true); assert.equal(BD.CONFIG.turnSeconds,3);
+  D.applyBalance({engine_lineBase:15}); assert.equal(BD.CONFIG.turnTimerEnabled,true);
+  D.applyBalance({engine_turnTimerEnabled:false}); assert.equal(BD.CONFIG.turnTimerEnabled,false);
+  D.applyBalance({engine_turnTimerEnabled:'true'}); assert.equal(BD.CONFIG.turnTimerEnabled,false);
+  D.applyBalance({engine_turnTimerEnabled:true}); D.resetBalance();
+  assert.equal(BD.CONFIG.turnTimerEnabled,false); assert.equal(BD.CONFIG.turnSeconds,20);
+});
 test('hero HP and Vitality levels stay unlimited in battle, live edits and imported profiles',()=>{
   const p = D.restoreProfile({...C.create(),levels:{hp:10001,attack:0,loot:0}});
   assert.equal(p.levels.hp,10001);

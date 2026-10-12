@@ -321,6 +321,8 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 .side.opp .ava { background: #E77886 !important; }
 .clock { background: radial-gradient(circle,#134B86,#051C3B 70%); border-color: #E5B65B; box-shadow: 0 0 0 3px #614521,inset 0 0 10px #37C8FF,0 0 8px #4EACFF77; }
 .clock .bar { stroke: #55D8FF; }
+.clock.untimed { background: transparent; box-shadow: none; border: 0; }
+.clock.untimed svg, .clock.untimed .num { display: none; }
 .tray { background: linear-gradient(180deg,#0C3964,#04172E); border-color: #EDC86A; border-radius: 16px; box-shadow: 0 0 0 2px #604622,inset 0 0 0 2px #2580A6,0 5px 0 #10203355; }
 .slot { background: radial-gradient(ellipse at 50% 40%,#143650,#061A2D); border: 1px solid #257095; border-radius: 14px; }
 .btn-small { border-color: #C79D4D; background: linear-gradient(#134D82,#082A4D); }
@@ -641,7 +643,7 @@ body[data-screen="campaign"] #soundBtn {display:none;}
         <div class="hp you" id="hp0"><div class="track"><i class="trail"></i><i class="pv"></i><i class="fill"></i><span class="num">100 / 100</span></div><svg class="heart" viewBox="0 0 36 34" aria-hidden="true"><path d="M18 31C7 23 2.5 17.5 2.5 11.2A8 8 0 0 1 18 7.4A8 8 0 0 1 33.5 11.2C33.5 17.5 29 23 18 31Z" fill="#FF3B5C" stroke="#0F1830" stroke-width="2.6" stroke-linejoin="round"/><path d="M18 27.5C10.5 21.5 7 17 6.8 12.5" stroke="#C8163A" stroke-width="3" fill="none" stroke-linecap="round" opacity=".5"/><ellipse cx="10.5" cy="11.5" rx="3.6" ry="2.4" transform="rotate(-35 10.5 11.5)" fill="#fff" opacity=".8"/></svg></div>
         <div class="hp opp" id="hp1"><div class="track"><i class="trail"></i><i class="pv"></i><i class="fill"></i><span class="num">100 / 100</span></div><svg class="heart" viewBox="0 0 36 34" aria-hidden="true"><path d="M18 31C7 23 2.5 17.5 2.5 11.2A8 8 0 0 1 18 7.4A8 8 0 0 1 33.5 11.2C33.5 17.5 29 23 18 31Z" fill="#FF3B5C" stroke="#0F1830" stroke-width="2.6" stroke-linejoin="round"/><path d="M18 27.5C10.5 21.5 7 17 6.8 12.5" stroke="#C8163A" stroke-width="3" fill="none" stroke-linecap="round" opacity=".5"/><ellipse cx="10.5" cy="11.5" rx="3.6" ry="2.4" transform="rotate(-35 10.5 11.5)" fill="#fff" opacity=".8"/></svg></div>
       </div>
-      <div class="clock idle" id="clock">
+      <div class="clock idle untimed" id="clock">
         <svg viewBox="0 0 46 46" aria-hidden="true"><circle class="track" cx="23" cy="23" r="19.5"/><circle class="bar" cx="23" cy="23" r="19.5" transform="rotate(-90 23 23)"/></svg>
         <span class="num" id="clockNum"></span>
         <div class="pips" id="pips"></div>
@@ -711,7 +713,8 @@ const BD = (() => {
     fitTries: 20,
     colors: 6,
     hp: 100,                 // здоров'я кожного гравця; шкода = очки
-    turnSeconds: 20,         // таймер ходу
+    turnTimerEnabled: false, // за замовчуванням можна обдумувати хід без ліміту часу
+    turnSeconds: 20,         // тривалість ходу, коли таймер увімкнений
     secondOpeningActions: 3, // дій у першому ході другого гравця
     firstFinalBonus: 0,      // додаткові дії першому гравцеві в останньому раунді
   };
@@ -1242,6 +1245,8 @@ const DEV = (() => {
     [...CAMP.QUESTS,...CAMP.ACHIEVEMENTS].forEach((q,i) => Object.assign(q, defaults.quests[i]));
   }
   function applyBalance(values) {
+    if (typeof values.engine_turnTimerEnabled === 'boolean')
+      BD.CONFIG.turnTimerEnabled = values.engine_turnTimerEnabled;
     for (const [group,fields,target] of [['engine',ENGINE_FIELDS,BD.CONFIG],['rpg',RPG_FIELDS,CAMP.CONFIG]])
       for (const [key,,min,max,step] of fields) target[key] = number(values[group+'_'+key],min,max,target[key],step);
     for (const [key,u] of Object.entries(CAMP.UPGRADES)) {
@@ -1823,7 +1828,7 @@ const DEV = (() => {
 
   // ---------- state ----------
   let S = null, opp = null, drag = null, shownTurn = null, shownHp = [100, 100], lastOppCells = null;
-  const timer = { left: 20000, running: false, last: performance.now() };
+  const timer = { left: BD.CONFIG.turnSeconds * 1000, running: false, last: performance.now() };
 
   function renderTray(animate) {
     const side = S.turn;
@@ -1854,6 +1859,7 @@ const DEV = (() => {
     let h = '';
     for (let i = 0; i < total; i++) h += `<i class="${i < S.actionsLeft ? '' : 'used'}"></i>`;
     pips.innerHTML = S.over ? '' : h;
+    $('clock').classList.toggle('untimed', !BD.CONFIG.turnTimerEnabled);
     $('clock').style.setProperty('--side', S.turn === 0 ? 'var(--you)' : 'var(--opp)');
     $('side0').classList.toggle('active', !S.over && S.turn === 0);
     $('side1').classList.toggle('active', !S.over && S.turn === 1);
@@ -1897,7 +1903,8 @@ const DEV = (() => {
   function timerFrame(now) {
     const dt = Math.min(100, now - timer.last);
     timer.last = now;
-    const live = S && timer.running && !S.over;
+    if (!BD.CONFIG.turnTimerEnabled) timer.running = false;
+    const live = BD.CONFIG.turnTimerEnabled && S && timer.running && !S.over;
     clockEl.classList.toggle('idle', !live);
     if (live) {
       const paused = busyTimer() || !$('leaveScreen').hidden;
@@ -2057,7 +2064,7 @@ const DEV = (() => {
       await banner(S.turn === 0 ? 'YOUR TURN' : 'ENEMY TURN', S.turn === 0 ? 'you' : 'opp');
       if (myGen !== gen) return;
       timer.left = BD.CONFIG.turnSeconds * 1000;
-      timer.running = true;
+      timer.running = BD.CONFIG.turnTimerEnabled;
     }
     if (!BD.handFits(S)) {
       setBusy(true);
@@ -2079,6 +2086,7 @@ const DEV = (() => {
   }
 
   async function onTimeout() {
+    if (!BD.CONFIG.turnTimerEnabled || !timer.running || !S || S.over) return;
     const myGen = gen;
     setBusy(true);
     timer.running = false;
@@ -2120,7 +2128,8 @@ const DEV = (() => {
     const [tx0, ty0, tr] = center(trayEl);
     if (!finger.classList.contains('on')) { placeFinger(tx0 + rnd(-40, 40), tr.top - 30); finger.classList.add('on'); }
     // thinking: the finger drifts over the board for a moment
-    const think = Math.min(firstOfTurn ? rnd(1100, 2000) : rnd(650, 1400), Math.max(300, timer.left - 6000));
+    const thinkDuration = firstOfTurn ? rnd(1100, 2000) : rnd(650, 1400);
+    const think = BD.CONFIG.turnTimerEnabled ? Math.min(thinkDuration, Math.max(300, timer.left - 6000)) : thinkDuration;
     const br = boardEl.getBoundingClientRect();
     await moveFinger(br.left + br.width * rnd(.25, .75), br.top + br.height * rnd(.35, .8), think * .55);
     if (myGen !== gen) return;
@@ -2395,7 +2404,7 @@ const DEV = (() => {
     refreshDebugBackground();
     if (debugReturnFocus?.isConnected) debugReturnFocus.focus();
     if (resume && S && !S.over) {
-      shownTurn = S.turn; timer.left = Math.max(1000,timer.left); timer.running = true; animating = false;
+      shownTurn = S.turn; timer.left = Math.max(1000,timer.left); timer.running = BD.CONFIG.turnTimerEnabled; animating = false;
       step(gen);
     }
   }
@@ -2418,11 +2427,14 @@ const DEV = (() => {
         ${debugField('seed','Random seed (blank = random)',v.seed,-2147483648,2147483647,1,true)}</div>
         <label class="debug-check"><input name="pauseBot" type="checkbox" ${v.pauseBot ? 'checked' : ''}>Pause bot turns for manual inspection</label>
         <div class="debug-actions">${debugButton('start','START TEST BATTLE','primary')}${debugButton('battle-defaults','Use default stats')}</div>
-        <p>Board: ${BD.N} × ${BD.N} · ${BD.CONFIG.rounds} rounds · ${BD.CONFIG.baseActions} actions · ${BD.CONFIG.turnSeconds}s per turn. Configure these in Balance.</p>`;
+        <p>Board: ${BD.N} × ${BD.N} · ${BD.CONFIG.rounds} rounds · ${BD.CONFIG.baseActions} actions · ${BD.CONFIG.turnTimerEnabled ? BD.CONFIG.turnSeconds+'s per turn' : 'No time limit'}. Configure these in Balance.</p>`;
     } else if (debugTab === 'balance') {
       const fields = (group,list,values) => `<div class="debug-fields">${list.map(([key,label,min,max,step])=>debugField(group+'_'+key,label,values[key],min,max,step)).join('')}</div>`;
       body.innerHTML = `<p class="debug-note">Balance changes affect sandbox games for this session. Returning to normal restores the standard rules. Decimal multipliers use 1 = 100%.</p><div class="debug-actions">${debugButton('balance-save','Apply balance','primary')}${debugButton('balance-reset','Reset balance')}</div>
-        <h3>Puzzle & Combat</h3>${fields('engine',DEV.ENGINE_FIELDS,BD.CONFIG)}
+        <h3>Puzzle & Combat</h3>
+        <label class="debug-check"><input name="engine_turnTimerEnabled" type="checkbox" ${BD.CONFIG.turnTimerEnabled ? 'checked' : ''}>Enable turn timer</label>
+        <p>No time limit by default. The duration below applies when the turn timer is enabled.</p>
+        ${fields('engine',DEV.ENGINE_FIELDS,BD.CONFIG)}
         <p>Fixed layout: ${BD.N} × ${BD.N} board, ${BD.CONFIG.handSize} pieces per hand, ${BD.CONFIG.colors} internal colors. One x2 block doubles damage; the cap limits stacked multipliers. Bombs affect a 3 × 3 area.</p>
         <h3>Hero & Gold</h3>${fields('rpg',DEV.RPG_FIELDS,CAMP.CONFIG)}
         <h3>Upgrade Prices</h3>${Object.entries(CAMP.UPGRADES).map(([key,u])=>`<h3>${u.name}</h3>${key === 'hp' ? '<p>Vitality has no level limit. Next price = starting price + price increase × current level.</p>' : ''}<div class="debug-fields">${debugField('upgrade_'+key+'_base','Starting price',u.base,1,1e6)}${key === 'hp' ? debugField('upgrade_'+key+'_step','Price increase per level',u.step,1,1e6) : debugField('upgrade_'+key+'_growth','Price growth multiplier',u.growth,1,3,.01)+debugField('upgrade_'+key+'_cap','Maximum level',u.cap,1,50)}</div>`).join('')}
@@ -2442,7 +2454,7 @@ const DEV = (() => {
       const live = S && !S.over && battleContext?.test;
       body.innerHTML = `<p class="debug-note">${live ? 'Battle paused. Apply values, then close this menu to continue.' : S && !S.over ? 'This is a normal battle. Start a sandbox battle to edit live state.' : 'Start a test battle to use live controls.'}</p>`;
       if (live) {
-        body.innerHTML += `<div class="debug-fields">${debugField('round','Current round',S.round,1,BD.CONFIG.rounds)}${debugSelect('turn','Current turn',S.turn,[[0,'Hero'],[1,'Enemy']])}${debugField('actions','Actions remaining',S.actionsLeft,1,30)}${debugField('bonus','Combo bonuses used',S.bonusUsed,0,BD.CONFIG.maxBonusActions)}${debugField('seconds','Timer remaining (seconds)',Math.ceil(timer.left/1000),1,BD.CONFIG.turnSeconds)}${debugField('seed','Current RNG state',S.seed,-2147483648,2147483647)}${debugField('loot','Gold multiplier (%)',percent(battleContext.loot),0,10000)}${debugField('coinLimit','Coins allowed in settlement',battleContext.coinCount,0,1e6)}${debugField('coinValue','Gold per coin in settlement',battleContext.coinGold,1,1e6)}</div>
+        body.innerHTML += `<p>${BD.CONFIG.turnTimerEnabled ? 'Turn timer enabled.' : 'No time limit. Enable the turn timer in Balance to test timed battles.'}</p><div class="debug-fields">${debugField('round','Current round',S.round,1,BD.CONFIG.rounds)}${debugSelect('turn','Current turn',S.turn,[[0,'Hero'],[1,'Enemy']])}${debugField('actions','Actions remaining',S.actionsLeft,1,30)}${debugField('bonus','Combo bonuses used',S.bonusUsed,0,BD.CONFIG.maxBonusActions)}${BD.CONFIG.turnTimerEnabled ? debugField('seconds','Timer remaining (seconds)',Math.ceil(timer.left/1000),1,BD.CONFIG.turnSeconds) : ''}${debugField('seed','Current RNG state',S.seed,-2147483648,2147483647)}${debugField('loot','Gold multiplier (%)',percent(battleContext.loot),0,10000)}${debugField('coinLimit','Coins allowed in settlement',battleContext.coinCount,0,1e6)}${debugField('coinValue','Gold per coin in settlement',battleContext.coinGold,1,1e6)}</div>
           <label class="debug-check"><input name="pauseBot" type="checkbox" ${debugPauseBot ? 'checked' : ''}>Pause bot turns</label>
           ${[0,1].map(side=>`<h3>${side === 0 ? 'Hero' : opp.name}</h3><div class="debug-fields">${debugField('side'+side+'_maxHp','Full health (HP)',S.maxHp[side],1,side === 0 ? null : 100000)}${debugField('side'+side+'_hp','Current HP',S.hp[side],1,S.maxHp[side])}${debugField('side'+side+'_attack','Attack (%)',percent(S.players[side].attack),10,10000)}${debugField('side'+side+'_armor','Armor (%)',percent(S.players[side].armor),0,60)}${debugField('side'+side+'_score','Damage points',S.scores[side])}${debugField('side'+side+'_gold','Collected raw gold',S.gold[side])}${debugField('side'+side+'_collected','Coins collected',S.collected[side])}${Object.keys(S.stats).filter(key=>Array.isArray(S.stats[key])).map(key=>debugField('side'+side+'_'+key,key.replace(/^./,ch=>ch.toUpperCase()),S.stats[key][side])).join('')}</div>`).join('')}
           <div class="debug-actions">${debugButton('live-save','Apply live values','primary')}${debugButton('skip-turn','Skip current turn')}${debugButton('heal','Heal both sides')}</div>
@@ -2457,10 +2469,12 @@ const DEV = (() => {
     return {version:1,mode:testMode ? 'sandbox' : 'normal',profile,
       rules:{puzzle:BD.CONFIG,rpg:CAMP.CONFIG,upgrades:CAMP.UPGRADES,quests:[...CAMP.QUESTS,...CAMP.ACHIEVEMENTS]},
       enemy:opp ? {id:opp.id,name:opp.name,race:opp.race,ai:opp.ai,reward:opp.reward} : null,
-      battle:S,context:battleContext,timerSeconds:Math.round(timer.left/1000),botPaused:debugPauseBot};
+      battle:S,context:battleContext,timerEnabled:BD.CONFIG.turnTimerEnabled,
+      timerSeconds:BD.CONFIG.turnTimerEnabled && S && !S.over ? Math.round(timer.left/1000) : null,botPaused:debugPauseBot};
   }
   function applyLiveValues(values) {
-    DEV.editLive(S,values); timer.left = DEV.number(values.seconds,1,BD.CONFIG.turnSeconds,timer.left/1000)*1000;
+    DEV.editLive(S,values);
+    if (BD.CONFIG.turnTimerEnabled) timer.left = DEV.number(values.seconds,1,BD.CONFIG.turnSeconds,timer.left/1000)*1000;
     battleContext.loot = DEV.number(values.loot,0,10000,percent(battleContext.loot))/100;
     battleContext.coinCount = DEV.number(values.coinLimit,0,1e6,battleContext.coinCount,1);
     battleContext.coinGold = DEV.number(values.coinValue,1,1e6,battleContext.coinGold,1);
